@@ -39,6 +39,25 @@ const TFS = ['Daily','4H','1H','30M','15M','5M','3M','1M'];
 const MONTHS = ['Leden','Únor','Březen','Duben','Květen','Červen','Červenec','Srpen','Září','Říjen','Listopad','Prosinec'];
 const MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
+// ── Settings ──────────────────────────────────────────────────
+const SETTINGS_KEY = 'tj_settings_v1';
+const DEFAULT_SETTINGS = { currency: 'usd', theme: 'blue' };
+let appSettings = { ...DEFAULT_SETTINGS, ...(JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')) };
+
+function saveSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify(appSettings)); }
+function currencySymbol() { return { usd: '$', eur: '€', czk: 'Kč' }[appSettings.currency] || '$'; }
+function fmtPnl(val) {
+  const sym = currencySymbol();
+  const abs = Math.abs(val).toLocaleString();
+  if (appSettings.currency === 'czk') return (val >= 0 ? '+' : '-') + abs + ' ' + sym;
+  return (val >= 0 ? '+' : '-') + sym + abs;
+}
+function applyTheme() {
+  document.body.className = document.body.className.replace(/\btheme-\S+/g, '').trim();
+  document.body.classList.add('theme-' + appSettings.theme);
+}
+applyTheme();
+
 // ── State ─────────────────────────────────────────────────────
 let trades = {};
 const now = new Date();
@@ -235,7 +254,7 @@ function renderSidebar() {
     ${displayMode !== 'rr' ? `
     <div class="stat-block">
       <div class="stat-label">P&L</div>
-      <div class="stat-val ${monthPnl >= 0 ? 'green' : 'red'}">${monthPnl >= 0 ? '+$' : '-$'}${Math.abs(monthPnl).toLocaleString()}</div>
+      <div class="stat-val ${monthPnl >= 0 ? 'green' : 'red'}">${fmtPnl(monthPnl)}</div>
     </div>` : ''}
     <div style="margin-top:auto;padding-top:10px;">
       <button onclick="doLogout()" style="width:100%;padding:6px 0;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s" onmouseover="this.style.borderColor='var(--border2)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">Odhlásit se</button>
@@ -305,7 +324,7 @@ function renderGrid(dir) {
     const badge = summary.result ? `<div class="cell-badge ${summary.result}">${summary.result==='be'?'BE':summary.result.toUpperCase()}</div>` : '';
     const rrTxt = summary.rr != null && displayMode !== 'pnl' ? `<div class="cell-rr">${summary.rr > 0 ? '+' : ''}${summary.rr}R</div>` : '';
     const totalPnl = (dayData.tradeList || []).reduce((s, t) => s + (t.pnl ?? 0), 0);
-    const pnlTxt = totalPnl !== 0 && displayMode !== 'rr' ? `<div class="cell-rr" style="color:${totalPnl>0?'var(--win)':'var(--loss)'}">${totalPnl>0?'+$':'-$'}${Math.abs(totalPnl)}</div>` : '';
+    const pnlTxt = totalPnl !== 0 && displayMode !== 'rr' ? `<div class="cell-rr" style="color:${totalPnl>0?'var(--win)':'var(--loss)'}">${fmtPnl(totalPnl)}</div>` : '';
     const tradeCount = dayData.tradeList.filter(t => t.result).length;
     const countBadge = tradeCount > 1 ? `<div style="font-size:9px;color:var(--muted2);margin-top:1px">${tradeCount} trades</div>` : '';
 
@@ -388,7 +407,7 @@ function openModal(key, date) {
         ? `-${tr.rr ?? 1}R`
         : (tr.rr ? `+${tr.rr}R` : '');
       const pnlDisplay = tr.pnl != null && tr.pnl !== 0
-        ? `<span class="trade-item-pnl" style="color:${tr.pnl>0?'var(--win)':'var(--loss)'}">${tr.pnl>0?'+$':'-$'}${Math.abs(tr.pnl)}</span>`
+        ? `<span class="trade-item-pnl" style="color:${tr.pnl>0?'var(--win)':'var(--loss)'}">${fmtPnl(tr.pnl)}</span>`
         : '';
       item.innerHTML = `
         <span class="trade-item-num">#${i+1}</span>
@@ -946,7 +965,7 @@ function renderStats() {
   const rrKpiClass  = rrSum >= 0 ? 'green' : 'red';
   const pnlKpiClass = totalPnl >= 0 ? 'green' : 'red';
   const rrKpiVal    = rrN > 0 ? (rrSum >= 0 ? '+' : '') + Math.round(rrSum*100)/100 + 'R' : '—';
-  const pnlKpiVal   = (totalPnl >= 0 ? '+$' : '-$') + Math.abs(totalPnl).toLocaleString();
+  const pnlKpiVal   = fmtPnl(totalPnl);
   const streakVal   = calcStreak(all);
 
   const rrKpiHtml = showRR ? `
@@ -990,12 +1009,10 @@ function renderStats() {
       </div>
       ${rrKpiHtml}
       ${pnlKpiHtml}
-      <div class="stats-card">
+      <div class="stats-card streak-card">
+        <div class="streak-flame">🔥</div>
         <div class="stats-card-title">Win Streak</div>
-        <div class="stats-kpi dim" style="display:flex;align-items:center;gap:6px">
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:#2563eb;flex-shrink:0"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
-          ${streakVal}
-        </div>
+        <div class="streak-num">${streakVal === '—' ? '—' : streakVal}</div>
         <div class="stats-kpi-sub">aktuální streak</div>
       </div>
     </div>
@@ -1161,3 +1178,46 @@ function showToast(msg) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2200);
 }
+
+// ── Settings panel ────────────────────────────────────────────
+function openSettings() {
+  document.getElementById('settings-overlay').classList.add('open');
+  updateSettingsUI();
+}
+function closeSettings() {
+  document.getElementById('settings-overlay').classList.remove('open');
+}
+function updateSettingsUI() {
+  document.querySelectorAll('#currency-opts .settings-opt').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === appSettings.currency);
+  });
+  document.querySelectorAll('#theme-opts .theme-opt').forEach(b => {
+    b.classList.toggle('active', b.dataset.t === appSettings.theme);
+  });
+}
+
+document.getElementById('settings-btn').onclick = e => {
+  e.stopPropagation();
+  document.getElementById('settings-overlay').classList.contains('open') ? closeSettings() : openSettings();
+};
+document.getElementById('settings-x').onclick = closeSettings;
+document.getElementById('settings-overlay').onclick = e => {
+  if (e.target === document.getElementById('settings-overlay')) closeSettings();
+};
+document.querySelectorAll('#currency-opts .settings-opt').forEach(b => {
+  b.onclick = () => {
+    appSettings.currency = b.dataset.val;
+    saveSettings();
+    updateSettingsUI();
+    render();
+    if (document.getElementById('view-stats').style.display !== 'none') renderStats();
+  };
+});
+document.querySelectorAll('#theme-opts .theme-opt').forEach(b => {
+  b.onclick = () => {
+    appSettings.theme = b.dataset.t;
+    saveSettings();
+    applyTheme();
+    updateSettingsUI();
+  };
+});

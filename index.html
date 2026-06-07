@@ -34,6 +34,37 @@
       <button class="mode-btn" data-m="rr">RR</button>
       <button class="mode-btn" data-m="pnl">$</button>
     </div>
+    <button class="settings-btn" id="settings-btn" title="Nastavení">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </div>
+
+  <!-- Settings panel -->
+  <div class="settings-overlay" id="settings-overlay">
+    <div class="settings-panel" id="settings-panel">
+      <div class="settings-head">
+        <div class="settings-title">Nastavení</div>
+        <button class="settings-x" id="settings-x">✕</button>
+      </div>
+      <div class="settings-body">
+        <div class="settings-section-title">Měna</div>
+        <div class="settings-options" id="currency-opts">
+          <button class="settings-opt" data-val="usd">$ USD</button>
+          <button class="settings-opt" data-val="eur">€ EUR</button>
+          <button class="settings-opt" data-val="czk">Kč CZK</button>
+        </div>
+        <div class="settings-section-title" style="margin-top:16px">Barevné téma</div>
+        <div class="settings-themes" id="theme-opts">
+          <button class="theme-opt" data-t="blue"   title="Modrá"><span style="background:#2563eb"></span></button>
+          <button class="theme-opt" data-t="purple" title="Fialová"><span style="background:#7c3aed"></span></button>
+          <button class="theme-opt" data-t="red"    title="Červená"><span style="background:#dc2626"></span></button>
+          <button class="theme-opt" data-t="green"  title="Zelená"><span style="background:#16a34a"></span></button>
+          <button class="theme-opt" data-t="pink"   title="Růžová"><span style="background:#db2777"></span></button>
+          <button class="theme-opt" data-t="dark"   title="Černá"><span style="background:#111"></span></button>
+          <button class="theme-opt" data-t="light"  title="Bílá"><span style="background:#fff;border:1px solid #ccc"></span></button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="body">
