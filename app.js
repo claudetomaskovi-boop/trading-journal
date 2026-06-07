@@ -916,12 +916,21 @@ document.getElementById('tab-calendar').onclick = () => switchView('calendar');
 document.getElementById('tab-stats').onclick    = () => switchView('stats');
 
 function switchView(view) {
+  if (view === activeView) return;
+  const views = { calendar: 'view-calendar', stats: 'view-stats' };
+  const outEl = document.getElementById(views[activeView]);
   activeView = view;
   document.getElementById('tab-calendar').classList.toggle('active', view === 'calendar');
   document.getElementById('tab-stats').classList.toggle('active', view === 'stats');
-  document.getElementById('view-calendar').style.display = view === 'calendar' ? '' : 'none';
-  document.getElementById('view-stats').style.display    = view === 'stats'    ? '' : 'none';
   if (view === 'stats') renderStats();
+  const inEl = document.getElementById(views[view]);
+  if (outEl) {
+    outEl.style.animation = 'view-out .18s ease forwards';
+    setTimeout(() => { outEl.style.display = 'none'; outEl.style.animation = ''; }, 180);
+  }
+  inEl.style.display = '';
+  inEl.style.animation = 'view-in .22s ease forwards';
+  setTimeout(() => { inEl.style.animation = ''; }, 220);
 }
 
 // ── Statistics ────────────────────────────────────────────────
