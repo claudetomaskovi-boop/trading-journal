@@ -1076,13 +1076,10 @@ function renderStats() {
       statsPeriod = btn.dataset.p;
       const inner = document.getElementById('stats-inner');
       inner.style.opacity = '0';
-      inner.style.transition = 'opacity .15s ease';
       setTimeout(() => {
         renderStats();
-        requestAnimationFrame(() => requestAnimationFrame(() => {
-          inner.style.opacity = '1';
-        }));
-      }, 150);
+        requestAnimationFrame(() => requestAnimationFrame(() => { inner.style.opacity = '1'; }));
+      }, 200);
     };
   });
 

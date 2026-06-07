@@ -508,7 +508,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 
 /* ── Stats view ── */
 .stats-wrap{flex:1;overflow-y:auto;background:var(--bg2);padding:20px;position:absolute;inset:0;left:158px;transition:opacity .2s ease;}
-.stats-inner{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:16px;}
+.stats-inner{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:16px;transition:opacity .2s ease;}
 
 .stats-row{display:grid;gap:12px;}
 .stats-row.cols-4{grid-template-columns:repeat(4,1fr);}
