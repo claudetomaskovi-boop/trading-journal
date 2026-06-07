@@ -923,6 +923,29 @@ function renderStats() {
   };
 
   if (total > 0) {
+    const donutLabelPlugin = {
+      id: 'donutLabels',
+      afterDatasetDraw(chart) {
+        const { ctx, data } = chart;
+        const ds = chart.getDatasetMeta(0);
+        ds.data.forEach((arc, i) => {
+          const val = data.datasets[0].data[i];
+          if (!val) return;
+          const pct = Math.round(val / total * 100);
+          const angle = (arc.startAngle + arc.endAngle) / 2;
+          const r = (arc.innerRadius + arc.outerRadius) / 2;
+          const x = arc.x + Math.cos(angle) * r;
+          const y = arc.y + Math.sin(angle) * r;
+          ctx.save();
+          ctx.font = `600 11px 'Plus Jakarta Sans', sans-serif`;
+          ctx.fillStyle = i === 2 ? '#374151' : '#fff';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(pct + '%', x, y);
+          ctx.restore();
+        });
+      }
+    };
     chartInstances.donut = new Chart(document.getElementById('chart-donut'), {
       type: 'doughnut',
       data: {
@@ -937,7 +960,8 @@ function renderStats() {
           legend: { display: false },
           tooltip: { ...tooltipDefaults, callbacks: { label: ctx => `${ctx.label}: ${ctx.raw} (${Math.round(ctx.raw/total*100)}%)` } }
         }
-      }
+      },
+      plugins: [donutLabelPlugin]
     });
   }
 
@@ -1004,7 +1028,7 @@ function calcStreak(all) {
     if (all[i].result === 'win') count++;
     else break;
   }
-  return count > 0 ? count + 'W' : '—';
+  return count > 0 ? `${count}<span style="font-size:.6em;font-weight:500;opacity:.7;margin-left:1px">w</span>` : '—';
 }
 
 function doLogout() {
