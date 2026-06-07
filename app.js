@@ -146,7 +146,7 @@ function setSquareCells() {
 window.addEventListener('resize', () => requestAnimationFrame(setSquareCells));
 
 async function initApp() {
-  document.getElementById('cal-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);font-size:13px">Loading…</div>';
+  document.getElementById('cal-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);font-size:13px">Načítám…</div>';
   await loadData();
   render();
   requestAnimationFrame(setSquareCells);
@@ -204,7 +204,7 @@ function renderSidebar() {
   });
 
   document.getElementById('sidebar').innerHTML = `
-    <div class="sidebar-title">Statistics <span style="text-transform:none;font-weight:400;letter-spacing:0">for ${MONTHS_EN[viewMonth]}</span></div>
+    <div class="sidebar-title">Statistiky <span style="text-transform:none;font-weight:400;letter-spacing:0">— ${MONTHS_EN[viewMonth]}</span></div>
     <div class="stat-block">
       <div class="stat-label">Win Rate</div>
       <div class="stat-val blue">${s.wr}</div>
@@ -373,7 +373,7 @@ function openModal(key, date) {
 
     const listLabel = document.createElement('div');
     listLabel.style.cssText = 'font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);';
-    listLabel.textContent = dayData.tradeList.length > 1 ? 'Trades this day' : 'Trade';
+    listLabel.textContent = dayData.tradeList.length > 1 ? 'Obchody' : 'Obchod';
     tradesSection.appendChild(listLabel);
 
     const tradesList = document.createElement('div');
@@ -424,7 +424,7 @@ function openModal(key, date) {
     if (dayData.tradeList.length > 1) {
       const edTitle = document.createElement('div');
       edTitle.className = 'trade-editor-title';
-      edTitle.textContent = `Trade #${activeIdx + 1}`;
+      edTitle.textContent = `Obchod #${activeIdx + 1}`;
       body.appendChild(edTitle);
     }
 
@@ -468,7 +468,7 @@ function openModal(key, date) {
 
     const tfSidebar = document.createElement('div');
     tfSidebar.className = 'tf-sidebar';
-    tfSidebar.innerHTML = `<div class="tf-sidebar-title">Timeframes</div>`;
+    tfSidebar.innerHTML = `<div class="tf-sidebar-title">Timeframy</div>`;
 
     const tfMain = document.createElement('div');
     tfMain.className = 'tf-main';
@@ -477,7 +477,7 @@ function openModal(key, date) {
       tfMain.innerHTML = '';
       const uploaded = TFS.filter(tf => tr.screenshots?.[tf]);
       if (uploaded.length === 0) {
-        tfMain.innerHTML = `<div class="tf-main-empty"><div class="tf-main-empty-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="tf-main-empty-txt">Click a timeframe to add a screenshot</div></div>`;
+        tfMain.innerHTML = `<div class="tf-main-empty"><div class="tf-main-empty-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="tf-main-empty-txt">Klikni na timeframe nebo vlož Ctrl+V</div></div>`;
         return;
       }
       const area = document.createElement('div');
@@ -494,7 +494,7 @@ function openModal(key, date) {
           <div class="tf-img-wrap" id="wrap-${tf}">
             <img src="${tr.screenshots[tf]}" alt="${tf}"/>
           </div>
-          <textarea class="tf-note" id="note-${tf}" placeholder="Notes for ${tf}...">${note}</textarea>
+          <textarea class="tf-note" id="note-${tf}" placeholder="Poznámky k ${tf}...">${note}</textarea>
         `;
         area.appendChild(card);
         card.querySelector(`#wrap-${tf}`).onclick = () => openLightbox(tr.screenshots[tf], tf, tr);
@@ -525,13 +525,13 @@ function openModal(key, date) {
         showToast(`Screenshot nahrán → ${tf}`);
       } catch(e) {
         console.error(e);
-        showToast('Upload failed');
+        showToast('Nahrávání selhalo');
       }
       if (btn) { btn.disabled = false; }
     }
 
     function renderTFButtons() {
-      tfSidebar.innerHTML = `<div class="tf-sidebar-title">Timeframes <span style="font-size:9px;font-weight:400;color:var(--muted2);text-transform:none;letter-spacing:0">Ctrl+V</span></div>`;
+      tfSidebar.innerHTML = `<div class="tf-sidebar-title">Timeframy</div>`;
       TFS.forEach(tf => {
         const hasImg = !!tr.screenshots?.[tf];
         const btn = document.createElement('button');
@@ -555,7 +555,7 @@ function openModal(key, date) {
               tr.screenshots[tf] = url;
               selectedTF = null;
               renderTFButtons(); renderTFMain();
-            } catch(e) { console.error(e); showToast('Upload failed'); }
+            } catch(e) { console.error(e); showToast('Nahrávání selhalo'); }
             btn.disabled = false;
           };
           input.click();
@@ -598,14 +598,14 @@ function openModal(key, date) {
     const finalNotesWrap = document.createElement('div');
     finalNotesWrap.className = 'final-notes-wrap';
     finalNotesWrap.innerHTML = `
-      <div class="final-notes-label">Final Notes</div>
-      <textarea class="final-notes-inp" id="final-notes" placeholder="Overall trade summary, mistakes, lessons learned...">${tr.finalNotes || ''}</textarea>
+      <div class="final-notes-label">Závěrečné poznámky</div>
+      <textarea class="final-notes-inp" id="final-notes" placeholder="Celkové shrnutí obchodu, chyby, poučení...">${tr.finalNotes || ''}</textarea>
     `;
     body.appendChild(finalNotesWrap);
 
     const addBtn = document.createElement('button');
     addBtn.className = 'add-trade-btn';
-    addBtn.textContent = '+ Add trade';
+    addBtn.textContent = '+ Přidat obchod';
     addBtn.onclick = () => {
       dayData.tradeList.push({ result: null, rr: null, pnl: null, screenshots: {}, notes: {}, finalNotes: '' });
       activeIdx = dayData.tradeList.length - 1;
@@ -617,7 +617,7 @@ function openModal(key, date) {
     saveRow.className = 'save-row';
     const saveBtn = document.createElement('button');
     saveBtn.className = 'save-btn';
-    saveBtn.textContent = 'Save';
+    saveBtn.textContent = 'Uložit';
     saveBtn.onclick = async () => {
       saveBtn.textContent = 'Saving…';
       saveBtn.disabled = true;
@@ -637,7 +637,7 @@ function openModal(key, date) {
       await saveDayData(key, dayData);
       closeModal();
       render();
-      showToast('Saved ✓');
+      showToast('Uloženo ✓');
     };
     saveRow.appendChild(saveBtn);
     body.appendChild(saveRow);
@@ -704,7 +704,7 @@ function openTradesList(type, tab, crFrom, crTo) {
 
   const list = document.getElementById('tl-list');
   if (items.length === 0) {
-    list.innerHTML = `<div class="tl-empty">No records</div>`;
+    list.innerHTML = `<div class="tl-empty">Žádné záznamy</div>`;
   } else {
     list.innerHTML = items.map(([k]) => {
       const dd = normalizeDayData(k);
@@ -951,21 +951,21 @@ function renderStats() {
 
   const rrKpiHtml = showRR ? `
     <div class="stats-card">
-      <div class="stats-card-title">Celkové RR</div>
+      <div class="stats-card-title">Total R</div>
       <div class="stats-kpi ${rrKpiClass}">${rrKpiVal}</div>
-      <div class="stats-kpi-sub">součet všech obchodů</div>
+      <div class="stats-kpi-sub">součet RR</div>
     </div>` : '';
 
   const pnlKpiHtml = showPnl ? `
     <div class="stats-card">
-      <div class="stats-card-title">Celkový P&amp;L</div>
+      <div class="stats-card-title">Total P&amp;L</div>
       <div class="stats-kpi ${pnlKpiClass}">${pnlKpiVal}</div>
       <div class="stats-kpi-sub">součet v dolarech</div>
     </div>` : '';
 
   const rrChartHtml = showRRChart ? `
     <div class="stats-card">
-      <div class="stats-card-title">RR po měsících</div>
+      <div class="stats-card-title">R po měsících</div>
       <div class="chart-wrap-bar"><canvas id="chart-rr"></canvas></div>
     </div>` : '';
 
@@ -979,14 +979,14 @@ function renderStats() {
   el.innerHTML = `
     <div class="stats-period-bar">
       <button class="stats-period-btn${statsPeriod==='month'?' active':''}" data-p="month">${MONTHS_EN[now.getMonth()]}</button>
-      <button class="stats-period-btn${statsPeriod==='total'?' active':''}" data-p="total">All Time</button>
-      <button class="stats-period-btn${statsPeriod==='custom'?' active':''}" data-p="custom">Custom${crLbl ? ': '+crLbl : ''}</button>
+      <button class="stats-period-btn${statsPeriod==='total'?' active':''}" data-p="total">Celkem</button>
+      <button class="stats-period-btn${statsPeriod==='custom'?' active':''}" data-p="custom">Vlastní${crLbl ? ': '+crLbl : ''}</button>
     </div>
     <div class="stats-row cols-${kpiCols}">
       <div class="stats-card">
         <div class="stats-card-title">Win Rate</div>
         <div class="stats-kpi blue">${total > 0 ? wr + '%' : '—'}</div>
-        <div class="stats-kpi-sub">${total} obchodů celkem</div>
+        <div class="stats-kpi-sub">${total} obchodů</div>
       </div>
       ${rrKpiHtml}
       ${pnlKpiHtml}
