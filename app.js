@@ -884,9 +884,28 @@ document.getElementById('cr-apply').onclick = () => {
 };
 
 // ── Display mode (now in settings) ───────────────────────────
+function fadeAndRender(cb) {
+  const targets = [
+    document.getElementById('cal-grid'),
+    document.getElementById('sidebar'),
+    document.getElementById('stats-inner'),
+  ].filter(Boolean);
+  targets.forEach(el => el.classList.add('fade-out'));
+  setTimeout(() => {
+    cb();
+    targets.forEach(el => {
+      el.classList.remove('fade-out');
+      el.classList.add('fade-in');
+      setTimeout(() => el.classList.remove('fade-in'), 200);
+    });
+  }, 150);
+}
+
 function applyDisplayMode() {
-  render();
-  if (activeView === 'stats') renderStats();
+  fadeAndRender(() => {
+    render();
+    if (activeView === 'stats') renderStats();
+  });
 }
 
 // ── View switching ────────────────────────────────────────────
@@ -1228,7 +1247,9 @@ document.querySelectorAll('#currency-opts .settings-opt').forEach(b => {
     appSettings.currency = b.dataset.val;
     saveSettings();
     updateSettingsUI();
-    render();
-    if (document.getElementById('view-stats').style.display !== 'none') renderStats();
+    fadeAndRender(() => {
+      render();
+      if (document.getElementById('view-stats').style.display !== 'none') renderStats();
+    });
   };
 });

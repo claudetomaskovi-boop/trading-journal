@@ -111,6 +111,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 @keyframes slide-in-left{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:none}}
 .cal-grid.anim-right{animation:slide-in-right .35s ease}
 .cal-grid.anim-left{animation:slide-in-left .35s ease}
+.fade-out{opacity:0;transition:opacity .15s ease}
+.fade-in{opacity:1;transition:opacity .18s ease}
 
 /* ── Cells ── */
 .cell{
