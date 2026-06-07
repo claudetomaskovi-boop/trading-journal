@@ -305,7 +305,7 @@ function renderGrid(dir) {
     const badge = summary.result ? `<div class="cell-badge ${summary.result}">${summary.result==='be'?'BE':summary.result.toUpperCase()}</div>` : '';
     const rrTxt = summary.rr != null && displayMode !== 'pnl' ? `<div class="cell-rr">${summary.rr > 0 ? '+' : ''}${summary.rr}R</div>` : '';
     const totalPnl = (dayData.tradeList || []).reduce((s, t) => s + (t.pnl ?? 0), 0);
-    const pnlTxt = totalPnl !== 0 && displayMode !== 'rr' ? `<div class="cell-rr" style="color:${totalPnl>0?'var(--win)':'var(--loss)'}">${totalPnl>0?'+':''}$${totalPnl}</div>` : '';
+    const pnlTxt = totalPnl !== 0 && displayMode !== 'rr' ? `<div class="cell-rr" style="color:${totalPnl>0?'var(--win)':'var(--loss)'}">${totalPnl>0?'+$':'-$'}${Math.abs(totalPnl)}</div>` : '';
     const tradeCount = dayData.tradeList.filter(t => t.result).length;
     const countBadge = tradeCount > 1 ? `<div style="font-size:9px;color:var(--muted2);margin-top:1px">${tradeCount} trades</div>` : '';
 
