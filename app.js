@@ -919,18 +919,17 @@ function switchView(view) {
   if (view === activeView) return;
   const views = { calendar: 'view-calendar', stats: 'view-stats' };
   const outEl = document.getElementById(views[activeView]);
+  const inEl  = document.getElementById(views[view]);
   activeView = view;
   document.getElementById('tab-calendar').classList.toggle('active', view === 'calendar');
   document.getElementById('tab-stats').classList.toggle('active', view === 'stats');
   if (view === 'stats') renderStats();
-  const inEl = document.getElementById(views[view]);
-  if (outEl) {
-    outEl.style.animation = 'view-out .18s ease forwards';
-    setTimeout(() => { outEl.style.display = 'none'; outEl.style.animation = ''; }, 180);
-  }
+  // fade out old
+  if (outEl) { outEl.style.opacity = '0'; setTimeout(() => { outEl.style.display = 'none'; }, 200); }
+  // fade in new
+  inEl.style.opacity = '0';
   inEl.style.display = '';
-  inEl.style.animation = 'view-in .22s ease forwards';
-  setTimeout(() => { inEl.style.animation = ''; }, 220);
+  requestAnimationFrame(() => requestAnimationFrame(() => { inEl.style.opacity = '1'; }));
 }
 
 // ── Statistics ────────────────────────────────────────────────
