@@ -439,10 +439,10 @@ function openModal(key, date) {
         <button class="res-btn" data-r="be">Break Even</button>
       </div>
       <div class="rr-block">
-        <span class="rr-lbl">RR</span>
+        <span class="rr-lbl">$</span>
+        <input class="rr-inp" id="pnl-inp" type="number" step="1" placeholder="0" value="${tr.pnl != null ? Math.abs(tr.pnl) : ''}" style="width:100px"/>
+        <span class="rr-lbl" style="margin-left:6px">RR</span>
         <input class="rr-inp" id="rr-inp" type="number" step="0.1" min="0" placeholder="${selResult === 'loss' ? '1.0' : '0.0'}" value="${selResult === 'loss' ? (tr.rr ?? '') : (tr.rr || '')}"/>
-        <span class="rr-lbl" style="margin-left:6px">$</span>
-        <input class="rr-inp" id="pnl-inp" type="number" step="1" placeholder="0" value="${tr.pnl ?? ''}"/>
       </div>
     `;
     body.appendChild(resRow);
@@ -453,7 +453,10 @@ function openModal(key, date) {
         if (b.dataset.r === selResult) b.classList.add(`sel-${selResult}`);
       });
       const rrInp = document.getElementById('rr-inp');
-      if (rrInp) rrInp.placeholder = selResult === 'loss' ? '1.0' : '0.0';
+      const pnlInp = document.getElementById('pnl-inp');
+      const isBe = selResult === 'be';
+      if (rrInp) { rrInp.placeholder = selResult === 'loss' ? '1.0' : '0.0'; rrInp.disabled = isBe; rrInp.style.opacity = isBe ? '.35' : ''; if (isBe) rrInp.value = ''; }
+      if (pnlInp) { pnlInp.disabled = isBe; pnlInp.style.opacity = isBe ? '.35' : ''; if (isBe) pnlInp.value = ''; }
     }
     updateBtns();
     resRow.querySelectorAll('.res-btn').forEach(b => {
