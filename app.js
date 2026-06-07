@@ -36,7 +36,6 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── Constants ─────────────────────────────────────────────────
 const TFS = ['Daily','4H','1H','30M','15M','5M','3M','1M'];
-const MISTAKE_TAGS = ['FOMO','Revenge trade','Přeskočil SL','Špatný vstup','Předčasný výstup','Overtrading','Bez plánu','Špatné RR','Přidával do ztráty','Špatný timeframe'];
 const MONTHS = ['Leden','Únor','Březen','Duben','Květen','Červen','Červenec','Srpen','Září','Říjen','Listopad','Prosinec'];
 const MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -547,26 +546,6 @@ function openModal(key, date) {
     tfSplit.appendChild(tfMain);
     body.appendChild(tfSplit);
 
-    // Mistake tags
-    const mistakeWrap = document.createElement('div');
-    mistakeWrap.className = 'mistake-wrap';
-    let selMistakes = Array.isArray(tr.mistakes) ? [...tr.mistakes] : [];
-    function renderMistakeTags() {
-      mistakeWrap.innerHTML = `<div class="final-notes-label">Chyby</div><div class="mistake-tags">${
-        MISTAKE_TAGS.map(tag => `<button class="mistake-tag${selMistakes.includes(tag) ? ' active' : ''}" data-tag="${tag}">${tag}</button>`).join('')
-      }</div>`;
-      mistakeWrap.querySelectorAll('.mistake-tag').forEach(btn => {
-        btn.onclick = () => {
-          const tag = btn.dataset.tag;
-          if (selMistakes.includes(tag)) selMistakes = selMistakes.filter(t => t !== tag);
-          else selMistakes.push(tag);
-          renderMistakeTags();
-        };
-      });
-    }
-    renderMistakeTags();
-    body.appendChild(mistakeWrap);
-
     const finalNotesWrap = document.createElement('div');
     finalNotesWrap.className = 'final-notes-wrap';
     finalNotesWrap.innerHTML = `
@@ -604,7 +583,6 @@ function openModal(key, date) {
       tr.rr = rrVal ? parseFloat(rrVal) : (selResult === 'loss' ? 1 : null);
       tr.pnl = pnlVal ? parseFloat(pnlVal) : null;
       tr.notes = notes;
-      tr.mistakes = selMistakes;
       tr.finalNotes = document.getElementById('final-notes')?.value || '';
       await saveDayData(key, dayData);
       closeModal();
@@ -915,28 +893,6 @@ function renderStats() {
       ${pnlChartHtml}
     </div>
   `;
-
-  // Mistake stats
-  const mistakeCounts = {};
-  all.forEach(t => {
-    (t.mistakes || []).forEach(m => { mistakeCounts[m] = (mistakeCounts[m] || 0) + 1; });
-  });
-  const mistakeEntries = Object.entries(mistakeCounts).sort((a,b) => b[1]-a[1]);
-  const mistakeHtml = mistakeEntries.length > 0 ? `
-    <div class="stats-row cols-1">
-      <div class="stats-card">
-        <div class="stats-card-title">Nejčastější chyby</div>
-        <div class="mistake-stats">${mistakeEntries.map(([tag, count]) => `
-          <div class="mistake-stat-row">
-            <div class="mistake-stat-label">${tag}</div>
-            <div class="mistake-stat-bar-wrap"><div class="mistake-stat-bar" style="width:${Math.round(count/mistakeEntries[0][1]*100)}%"></div></div>
-            <div class="mistake-stat-count">${count}×</div>
-          </div>`).join('')}
-        </div>
-      </div>
-    </div>` : '';
-
-  el.innerHTML += mistakeHtml;
 
   el.querySelectorAll('.stats-period-btn').forEach(btn => {
     btn.onclick = () => {
