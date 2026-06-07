@@ -581,7 +581,8 @@ function openModal(key, date) {
       const pnlVal = document.getElementById('pnl-inp')?.value;
       tr.result = selResult;
       tr.rr = rrVal ? parseFloat(rrVal) : (selResult === 'loss' ? 1 : null);
-      tr.pnl = pnlVal ? parseFloat(pnlVal) : null;
+      const rawPnl = pnlVal ? parseFloat(pnlVal) : null;
+      tr.pnl = rawPnl != null ? (selResult === 'loss' ? -Math.abs(rawPnl) : Math.abs(rawPnl)) : null;
       tr.notes = notes;
       tr.finalNotes = document.getElementById('final-notes')?.value || '';
       await saveDayData(key, dayData);
