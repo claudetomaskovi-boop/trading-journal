@@ -27,6 +27,17 @@
 
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;overflow:hidden}
 
+/* ── Login ── */
+.login-overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999}
+.login-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:36px 32px;width:320px;display:flex;flex-direction:column;gap:12px}
+.login-title{font-size:20px;font-weight:700;color:var(--text);text-align:center}
+.login-sub{font-size:12px;color:var(--muted);text-align:center;margin-bottom:4px}
+.login-inp{padding:10px 12px;border-radius:var(--r);border:1px solid var(--border2);background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--text);outline:none;transition:border-color .15s}
+.login-inp:focus{border-color:var(--accent)}
+.login-err{font-size:12px;color:#dc2626;min-height:16px;text-align:center}
+.login-btn{padding:10px;border-radius:var(--r);border:none;background:var(--accent);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.login-btn:hover{opacity:.85}
+
 /* ── Layout ── */
 .shell{display:flex;flex-direction:column;height:100vh}
 .topbar{

@@ -1,5 +1,34 @@
 'use strict';
 
+// ── Login ─────────────────────────────────────────────────────
+const CREDENTIALS = { username: 'jenda', password: 'trading2026' };
+
+function checkLogin() {
+  return sessionStorage.getItem('tj_auth') === '1';
+}
+
+document.getElementById('login-btn').onclick = doLogin;
+document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('login-user').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('login-pass').focus(); });
+
+function doLogin() {
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  if (user === CREDENTIALS.username && pass === CREDENTIALS.password) {
+    sessionStorage.setItem('tj_auth', '1');
+    document.getElementById('login-overlay').style.display = 'none';
+    document.getElementById('shell').style.display = '';
+    initApp();
+  } else {
+    document.getElementById('login-err').textContent = 'Špatné přihlašovací údaje';
+  }
+}
+
+if (checkLogin()) {
+  document.getElementById('login-overlay').style.display = 'none';
+  document.getElementById('shell').style.display = '';
+}
+
 // ── Supabase ──────────────────────────────────────────────────
 const SUPABASE_URL = 'https://lvuzzqhwjzgjyddefixr.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2dXp6cWh3anpnanlkZGVmaXhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDM3MTEsImV4cCI6MjA5NjQxOTcxMX0.-Z7xBdeqhctm7GvMUNoRRmT6GsLqA_DO2-5CDWystSk';
@@ -116,12 +145,14 @@ function setSquareCells() {
 }
 window.addEventListener('resize', () => requestAnimationFrame(setSquareCells));
 
-(async () => {
+async function initApp() {
   document.getElementById('cal-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);font-size:13px">Loading…</div>';
   await loadData();
   render();
   requestAnimationFrame(setSquareCells);
-})();
+}
+
+if (checkLogin()) initApp();
 
 // ── Render ────────────────────────────────────────────────────
 function render(dir) {
@@ -206,9 +237,8 @@ function renderSidebar() {
       <div class="stat-label">P&L</div>
       <div class="stat-val ${monthPnl >= 0 ? 'green' : 'red'}">${monthPnl >= 0 ? '+' : ''}$${monthPnl.toLocaleString()}</div>
     </div>` : ''}
-    <div style="margin-top:auto;padding-top:10px;display:flex;flex-direction:column;gap:4px;">
-      <button onclick="seedDemoData()" style="padding:6px 0;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">Load Demo</button>
-      <button onclick="clearAllData()" style="padding:6px 0;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s" onmouseover="this.style.borderColor='var(--loss)';this.style.color='var(--loss)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">Clear Data</button>
+    <div style="margin-top:auto;padding-top:10px;">
+      <button onclick="doLogout()" style="width:100%;padding:6px 0;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s" onmouseover="this.style.borderColor='var(--border2)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">Odhlásit se</button>
     </div>
   `;
   document.getElementById('sb-win')?.addEventListener('click',  () => openTradesList('win',  'month', null, null));
@@ -974,6 +1004,11 @@ function calcStreak(all) {
     else break;
   }
   return count > 0 ? count + 'W' : '—';
+}
+
+function doLogout() {
+  sessionStorage.removeItem('tj_auth');
+  location.reload();
 }
 
 function showToast(msg) {

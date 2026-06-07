@@ -9,7 +9,19 @@
 </head>
 <body>
 
-<div class="shell">
+<!-- Login overlay -->
+<div class="login-overlay" id="login-overlay">
+  <div class="login-box">
+    <div class="login-title">Trading Journal</div>
+    <div class="login-sub">Přihlaste se pro přístup</div>
+    <input class="login-inp" type="text" id="login-user" placeholder="Uživatelské jméno" autocomplete="username"/>
+    <input class="login-inp" type="password" id="login-pass" placeholder="Heslo" autocomplete="current-password"/>
+    <div class="login-err" id="login-err"></div>
+    <button class="login-btn" id="login-btn">Přihlásit se</button>
+  </div>
+</div>
+
+<div class="shell" id="shell" style="display:none">
   <!-- Top bar -->
   <div class="topbar">
     <div class="logo-name">Trading Journal</div>
