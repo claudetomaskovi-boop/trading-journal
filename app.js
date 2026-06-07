@@ -457,7 +457,7 @@ function openModal(key, date) {
     }
     updateBtns();
     resRow.querySelectorAll('.res-btn').forEach(b => {
-      b.onclick = () => { selResult = b.dataset.r; updateBtns(); };
+      b.onclick = () => { selResult = selResult === b.dataset.r ? null : b.dataset.r; updateBtns(); };
     });
 
     const tfSplit = document.createElement('div');
