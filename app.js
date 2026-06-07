@@ -1,7 +1,7 @@
 'use strict';
 
 // ── Login ─────────────────────────────────────────────────────
-const CREDENTIALS = { username: 'jenda', password: 'trading2026' };
+const CREDENTIALS = { username: 'jenda', password: '1234' };
 
 function checkLogin() {
   return sessionStorage.getItem('tj_auth') === '1';
