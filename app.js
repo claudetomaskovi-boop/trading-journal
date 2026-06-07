@@ -45,16 +45,71 @@ const DEFAULT_SETTINGS = { currency: 'usd', theme: 'blue' };
 let appSettings = { ...DEFAULT_SETTINGS, ...(JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')) };
 
 function saveSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify(appSettings)); }
+
+// ── Exchange rates ────────────────────────────────────────────
+let fxRates = { usd: 1, eur: 0.92, czk: 23.0 }; // fallback
+async function fetchRates() {
+  try {
+    const r = await fetch('https://api.frankfurter.app/latest?base=USD&symbols=EUR,CZK');
+    const d = await r.json();
+    if (d.rates) { fxRates = { usd: 1, eur: d.rates.EUR, czk: d.rates.CZK }; }
+  } catch(e) { /* use fallback */ }
+}
+fetchRates();
+
 function currencySymbol() { return { usd: '$', eur: '€', czk: 'Kč' }[appSettings.currency] || '$'; }
+function convertPnl(usdVal) {
+  const rate = fxRates[appSettings.currency] || 1;
+  return Math.round(usdVal * rate);
+}
 function fmtPnl(val) {
+  const converted = convertPnl(val);
   const sym = currencySymbol();
-  const abs = Math.abs(val).toLocaleString();
+  const abs = Math.abs(converted).toLocaleString();
   if (appSettings.currency === 'czk') return (val >= 0 ? '+' : '-') + abs + ' ' + sym;
   return (val >= 0 ? '+' : '-') + sym + abs;
 }
+
+// ── Theme colors ──────────────────────────────────────────────
+const THEME_COLORS = {
+  blue:   { accent:'#2563eb', accentG:'#60a5fa', accentDim:'rgba(37,99,235,.15)',
+            win:'#15803d', winDim:'rgba(21,128,61,.15)', loss:'#b91c1c', lossDim:'rgba(185,28,28,.15)',
+            donut:['#3b82f6','#1e3a8a','#bfdbfe'], barPos:'rgba(37,99,235,.75)', barNeg:'rgba(96,165,250,.5)' },
+  purple: { accent:'#7c3aed', accentG:'#a78bfa', accentDim:'rgba(124,58,237,.15)',
+            win:'#6d28d9', winDim:'rgba(109,40,217,.15)', loss:'#be185d', lossDim:'rgba(190,24,93,.15)',
+            donut:['#7c3aed','#4c1d95','#ddd6fe'], barPos:'rgba(124,58,237,.75)', barNeg:'rgba(167,139,250,.5)' },
+  red:    { accent:'#dc2626', accentG:'#f87171', accentDim:'rgba(220,38,38,.15)',
+            win:'#15803d', winDim:'rgba(21,128,61,.15)', loss:'#dc2626', lossDim:'rgba(220,38,38,.15)',
+            donut:['#ef4444','#7f1d1d','#fecaca'], barPos:'rgba(220,38,38,.75)', barNeg:'rgba(248,113,113,.5)' },
+  green:  { accent:'#16a34a', accentG:'#4ade80', accentDim:'rgba(22,163,74,.15)',
+            win:'#16a34a', winDim:'rgba(22,163,74,.15)', loss:'#b91c1c', lossDim:'rgba(185,28,28,.15)',
+            donut:['#22c55e','#14532d','#bbf7d0'], barPos:'rgba(22,163,74,.75)', barNeg:'rgba(74,222,128,.5)' },
+  pink:   { accent:'#db2777', accentG:'#f472b6', accentDim:'rgba(219,39,119,.15)',
+            win:'#15803d', winDim:'rgba(21,128,61,.15)', loss:'#db2777', lossDim:'rgba(219,39,119,.15)',
+            donut:['#ec4899','#831843','#fbcfe8'], barPos:'rgba(219,39,119,.75)', barNeg:'rgba(244,114,182,.5)' },
+  dark:   { accent:'#3b82f6', accentG:'#60a5fa', accentDim:'rgba(59,130,246,.18)',
+            win:'#22c55e', winDim:'rgba(34,197,94,.18)', loss:'#f87171', lossDim:'rgba(248,113,113,.18)',
+            donut:['#3b82f6','#1e3a8a','#1e40af'], barPos:'rgba(59,130,246,.8)', barNeg:'rgba(96,165,250,.4)' },
+  light:  { accent:'#2563eb', accentG:'#3b82f6', accentDim:'rgba(37,99,235,.1)',
+            win:'#15803d', winDim:'rgba(21,128,61,.1)', loss:'#b91c1c', lossDim:'rgba(185,28,28,.1)',
+            donut:['#3b82f6','#1e3a8a','#bfdbfe'], barPos:'rgba(37,99,235,.7)', barNeg:'rgba(96,165,250,.4)' },
+};
+function themeColors() { return THEME_COLORS[appSettings.theme] || THEME_COLORS.blue; }
+
 function applyTheme() {
   document.body.className = document.body.className.replace(/\btheme-\S+/g, '').trim();
   document.body.classList.add('theme-' + appSettings.theme);
+  const tc = themeColors();
+  const s = document.documentElement.style;
+  s.setProperty('--accent',   tc.accent);
+  s.setProperty('--accent-g', tc.accentG);
+  s.setProperty('--accent-dim', tc.accentDim);
+  s.setProperty('--win',      tc.win);
+  s.setProperty('--win-dim',  tc.winDim);
+  s.setProperty('--win-glow', tc.winDim);
+  s.setProperty('--loss',     tc.loss);
+  s.setProperty('--loss-dim', tc.lossDim);
+  s.setProperty('--loss-glow',tc.lossDim);
 }
 applyTheme();
 
@@ -1009,10 +1064,9 @@ function renderStats() {
       </div>
       ${rrKpiHtml}
       ${pnlKpiHtml}
-      <div class="stats-card streak-card">
-        <div class="streak-flame">🔥</div>
+      <div class="stats-card">
         <div class="stats-card-title">Win Streak</div>
-        <div class="streak-num">${streakVal === '—' ? '—' : streakVal}</div>
+        <div class="stats-kpi blue">${streakVal}</div>
         <div class="stats-kpi-sub">aktuální streak</div>
       </div>
     </div>
@@ -1086,7 +1140,7 @@ function renderStats() {
       type: 'doughnut',
       data: {
         labels: ['Win', 'Loss', 'Break Even'],
-        datasets: [{ data: [wins, losses, bes], backgroundColor: ['#60a5fa', '#1e3a8a', '#bfdbfe'], borderWidth: 2, borderColor: '#f0f1f3' }]
+        datasets: [{ data: [wins, losses, bes], backgroundColor: themeColors().donut, borderWidth: 2, borderColor: getComputedStyle(document.body).getPropertyValue('--bg').trim() || '#f0f1f3' }]
       },
       options: {
         maintainAspectRatio: false,
@@ -1118,7 +1172,7 @@ function renderStats() {
         datasets: [{
           label: 'P&L',
           data: monthPnlData,
-          backgroundColor: monthPnlData.map(v => v >= 0 ? 'rgba(37,99,235,0.75)' : 'rgba(96,165,250,0.5)'),
+          backgroundColor: monthPnlData.map(v => v >= 0 ? themeColors().barPos : themeColors().barNeg),
           borderRadius: 4,
         }]
       },
@@ -1126,9 +1180,9 @@ function renderStats() {
         maintainAspectRatio: false,
         scales: {
           x: { ticks: { font, color: '#6b7590' }, grid: { color: gridColor } },
-          y: { ticks: { font, color: '#6b7590', callback: v => '$' + v.toLocaleString() }, grid: { color: gridColor } }
+          y: { ticks: { font, color: '#6b7590', callback: v => fmtPnl(v) }, grid: { color: gridColor } }
         },
-        plugins: { legend: { display: false }, tooltip: { ...tooltipDefaults, callbacks: { label: ctx => (ctx.raw >= 0 ? '+' : '') + '$' + ctx.raw.toLocaleString() } } }
+        plugins: { legend: { display: false }, tooltip: { ...tooltipDefaults, callbacks: { label: ctx => fmtPnl(ctx.raw) } } }
       }
     });
   }
@@ -1141,7 +1195,7 @@ function renderStats() {
         datasets: [{
           label: 'RR',
           data: monthRR,
-          backgroundColor: monthRR.map(v => v >= 0 ? 'rgba(37,99,235,0.75)' : 'rgba(96,165,250,0.5)'),
+          backgroundColor: monthRR.map(v => v >= 0 ? themeColors().barPos : themeColors().barNeg),
           borderRadius: 4,
         }]
       },
@@ -1219,5 +1273,7 @@ document.querySelectorAll('#theme-opts .theme-opt').forEach(b => {
     saveSettings();
     applyTheme();
     updateSettingsUI();
+    render();
+    if (document.getElementById('view-stats').style.display !== 'none') renderStats();
   };
 });

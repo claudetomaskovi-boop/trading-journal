@@ -625,20 +625,3 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 .theme-opt:hover{border-color:var(--border2);transform:scale(1.1)}
 .theme-opt.active{border-color:var(--accent);transform:scale(1.1)}
 
-/* ── Win Streak card ── */
-.streak-card{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;
-  background:linear-gradient(135deg,var(--bg) 60%,var(--accent-dim,rgba(37,99,235,.08)));
-  border:1px solid var(--border);position:relative;overflow:hidden;
-}
-.streak-card::before{
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse at 80% 20%,var(--accent-dim,rgba(37,99,235,.12)) 0%,transparent 65%);
-  pointer-events:none;
-}
-.streak-flame{font-size:28px;margin-bottom:4px;line-height:1}
-.streak-num{
-  font-size:36px;font-weight:800;letter-spacing:-.04em;
-  color:var(--accent);line-height:1;margin:4px 0 2px;
-}
