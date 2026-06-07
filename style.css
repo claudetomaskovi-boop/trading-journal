@@ -25,24 +25,6 @@
   --r:         6px;
   --r2:        8px;
 }
-/* ── Themes ── */
-body.theme-purple{--accent:#7c3aed;--accent-g:#8b5cf6;--accent-hi:#6d28d9;--accent-dim:rgba(124,58,237,.1)}
-body.theme-red{--accent:#dc2626;--accent-g:#ef4444;--accent-hi:#b91c1c;--accent-dim:rgba(220,38,38,.1)}
-body.theme-green{--accent:#16a34a;--accent-g:#22c55e;--accent-hi:#15803d;--accent-dim:rgba(22,163,74,.1)}
-body.theme-pink{--accent:#db2777;--accent-g:#ec4899;--accent-hi:#be185d;--accent-dim:rgba(219,39,119,.1)}
-body.theme-dark{
-  --bg:#0f1117;--bg2:#161b27;--bg3:#1e2435;--bg4:#252d40;
-  --border:#2a3347;--border2:#364060;
-  --text:#e8edf5;--muted:#7a8aaa;--muted2:#4a5568;
-  --accent:#3b82f6;--accent-g:#60a5fa;--accent-hi:#2563eb;--accent-dim:rgba(59,130,246,.15);
-  --win-dim:rgba(21,128,61,.2);--loss-dim:rgba(185,28,28,.2);--be-dim:rgba(100,116,139,.15)
-}
-body.theme-light{
-  --bg:#ffffff;--bg2:#f8f9fb;--bg3:#f0f2f5;--bg4:#e8ebf0;
-  --border:#dde1ea;--border2:#c8cdd8;
-  --text:#0d1117;--muted:#5a6480;--muted2:#9ba5bf;
-  --accent:#2563eb;--accent-g:#3b82f6;--accent-hi:#1d4ed8;--accent-dim:rgba(37,99,235,.08)
-}
 
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;overflow:hidden}
 
@@ -615,13 +597,4 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 }
 .settings-opt:hover{border-color:var(--accent);color:var(--text)}
 .settings-opt.active{background:var(--accent);border-color:var(--accent);color:#fff}
-.settings-themes{display:flex;gap:8px;flex-wrap:wrap}
-.theme-opt{
-  width:32px;height:32px;border-radius:50%;border:2px solid transparent;
-  background:none;cursor:pointer;padding:2px;transition:all .15s;
-  display:flex;align-items:center;justify-content:center;
-}
-.theme-opt span{display:block;width:100%;height:100%;border-radius:50%}
-.theme-opt:hover{border-color:var(--border2);transform:scale(1.1)}
-.theme-opt.active{border-color:var(--accent);transform:scale(1.1)}
 
