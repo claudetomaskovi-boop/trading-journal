@@ -600,3 +600,116 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 .settings-opt:hover{border-color:var(--accent);color:var(--text)}
 .settings-opt.active{background:var(--accent);border-color:var(--accent);color:#fff}
 
+/* ── Funded view ── */
+.funded-wrap{flex:1;display:flex;overflow:hidden}
+.funded-sidebar{
+  width:220px;flex-shrink:0;background:var(--bg);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;padding:12px 8px;gap:4px;overflow-y:auto;
+}
+.funded-add-btn{
+  width:100%;padding:8px;border-radius:var(--r);border:1px dashed var(--border2);
+  background:transparent;color:var(--muted);font-size:12px;font-weight:600;
+  cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s;
+  display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:4px;
+}
+.funded-add-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(37,99,235,.05)}
+.funded-account-btn{
+  width:100%;padding:9px 10px;border-radius:var(--r);border:1px solid transparent;
+  background:transparent;color:var(--text);font-size:12px;font-weight:500;
+  cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s;
+  text-align:left;display:flex;align-items:center;gap:8px;
+}
+.funded-account-btn:hover{background:var(--bg3)}
+.funded-account-btn.active{background:var(--bg3);border-color:var(--border);}
+.funded-status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.funded-status-dot.pass{background:#22c55e}
+.funded-status-dot.warn{background:#f59e0b}
+.funded-status-dot.fail{background:#ef4444}
+.funded-account-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.funded-main{flex:1;overflow-y:auto;padding:24px;background:var(--bg2)}
+.funded-empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;gap:12px;color:var(--muted);
+}
+.funded-empty-icon{font-size:48px;opacity:.3}
+.funded-empty-txt{font-size:14px;font-weight:500}
+.funded-empty-sub{font-size:12px;opacity:.7}
+.funded-dashboard{display:flex;flex-direction:column;gap:16px;max-width:900px;margin:0 auto}
+.funded-dash-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.funded-dash-name{font-size:22px;font-weight:700;color:var(--text)}
+.funded-dash-meta{font-size:12px;color:var(--muted);margin-top:2px}
+.funded-dash-actions{display:flex;gap:6px}
+.funded-action-btn{
+  padding:6px 12px;border-radius:var(--r);border:1px solid var(--border);
+  background:var(--bg);color:var(--muted);font-size:11px;font-weight:600;
+  cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s;
+}
+.funded-action-btn:hover{border-color:var(--accent);color:var(--accent)}
+.funded-action-btn.danger:hover{border-color:var(--loss);color:var(--loss)}
+.funded-verdict{
+  padding:12px 16px;border-radius:var(--r2);border:1px solid;
+  font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px;
+}
+.funded-verdict.pass{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3);color:#15803d}
+.funded-verdict.warn{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.3);color:#b45309}
+.funded-verdict.fail{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:#dc2626}
+.funded-verdict-icon{font-size:18px}
+.funded-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.funded-metric{
+  background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);
+  padding:16px;display:flex;flex-direction:column;gap:8px;
+}
+.funded-metric.status-fail{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.04)}
+.funded-metric.status-warn{border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.04)}
+.funded-metric.status-pass{border-color:rgba(34,197,94,.3)}
+.funded-metric-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.funded-metric-val{font-size:22px;font-weight:800;letter-spacing:-.03em;color:var(--text)}
+.funded-metric-target{font-size:11px;color:var(--muted)}
+.funded-bar-wrap{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.funded-bar{height:100%;border-radius:3px;transition:width .4s ease}
+.funded-bar.pass{background:#22c55e}
+.funded-bar.warn{background:#f59e0b}
+.funded-bar.fail{background:#ef4444}
+.funded-metric-status{font-size:11px;font-weight:600;display:flex;align-items:center;gap:4px}
+.funded-metric-status.pass{color:#15803d}
+.funded-metric-status.warn{color:#b45309}
+.funded-metric-status.fail{color:#dc2626}
+.funded-daily-table{background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
+.funded-daily-head{display:grid;grid-template-columns:1fr 1fr 1fr 80px;padding:10px 16px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.funded-daily-row{display:grid;grid-template-columns:1fr 1fr 1fr 80px;padding:9px 16px;border-bottom:1px solid var(--border);font-size:12px;font-weight:500;color:var(--text)}
+.funded-daily-row:last-child{border-bottom:none}
+.funded-daily-row.row-fail{background:rgba(239,68,68,.05)}
+.funded-daily-row.row-warn{background:rgba(245,158,11,.05)}
+
+/* ── Funded modal ── */
+.fa-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);z-index:450;display:none;align-items:center;justify-content:center}
+.fa-overlay.open{display:flex}
+.fa-modal{background:var(--bg);border:1px solid var(--border);border-radius:10px;width:560px;max-width:96vw;max-height:90vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,.18);animation:modal-in .18s cubic-bezier(.34,1.3,.64,1)}
+.fa-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)}
+.fa-title{font-size:14px;font-weight:700;color:var(--text)}
+.fa-x{width:26px;height:26px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.fa-x:hover{background:var(--loss);color:#fff;border-color:var(--loss)}
+.fa-body{padding:16px;display:flex;flex-direction:column;gap:14px}
+.fa-presets{display:flex;flex-wrap:wrap;gap:6px}
+.fa-preset-btn{
+  padding:6px 12px;border-radius:var(--r);border:1px solid var(--border);
+  background:var(--bg3);color:var(--muted);font-size:11px;font-weight:600;
+  cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s;
+}
+.fa-preset-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(37,99,235,.07)}
+.fa-divider{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted2);text-align:center;padding:4px 0;position:relative}
+.fa-divider::before,.fa-divider::after{content:'';position:absolute;top:50%;width:38%;height:1px;background:var(--border)}
+.fa-divider::before{left:0}.fa-divider::after{right:0}
+.fa-form{display:flex;flex-direction:column;gap:10px}
+.fa-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fa-row4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+.fa-field{display:flex;flex-direction:column;gap:4px}
+.fa-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.fa-inp{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:13px;font-weight:500;padding:7px 10px;outline:none;width:100%;font-family:'Plus Jakarta Sans',sans-serif;transition:border-color .15s}
+.fa-inp:focus{border-color:var(--accent)}
+.fa-footer{display:flex;gap:6px;justify-content:flex-end;padding:12px 16px;border-top:1px solid var(--border)}
+.fa-btn{padding:7px 18px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;font-family:'Plus Jakarta Sans',sans-serif}
+.fa-btn:hover{border-color:var(--accent);color:var(--text)}
+.fa-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.fa-btn.primary:hover{opacity:.85}
+

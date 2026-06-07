@@ -914,14 +914,17 @@ let chartInstances = {};
 
 document.getElementById('tab-calendar').onclick = () => switchView('calendar');
 document.getElementById('tab-stats').onclick    = () => switchView('stats');
+document.getElementById('tab-funded').onclick   = () => switchView('funded');
 
 function switchView(view) {
   activeView = view;
-  document.getElementById('tab-calendar').classList.toggle('active', view === 'calendar');
-  document.getElementById('tab-stats').classList.toggle('active', view === 'stats');
-  document.getElementById('view-calendar').style.display = view === 'calendar' ? '' : 'none';
-  document.getElementById('view-stats').style.display    = view === 'stats'    ? '' : 'none';
-  if (view === 'stats') renderStats();
+  ['calendar','stats','funded'].forEach(v => {
+    document.getElementById('tab-'+v)?.classList.toggle('active', v === view);
+    const el = document.getElementById('view-'+v);
+    if (el) el.style.display = v === view ? '' : 'none';
+  });
+  if (view === 'stats')  renderStats();
+  if (view === 'funded') renderFunded();
 }
 
 // ── Statistics ────────────────────────────────────────────────
@@ -1249,7 +1252,251 @@ document.querySelectorAll('#currency-opts .settings-opt').forEach(b => {
     updateSettingsUI();
     fadeAndRender(() => {
       render();
-      if (document.getElementById('view-stats').style.display !== 'none') renderStats();
+      if (activeView === 'stats')  renderStats();
+      if (activeView === 'funded') renderFunded();
     });
   };
 });
+
+// ── Funded Accounts ───────────────────────────────────────────
+const FUNDED_KEY = 'tj_funded_v1';
+let fundedAccounts = JSON.parse(localStorage.getItem(FUNDED_KEY) || '[]');
+let selectedFundedId = fundedAccounts[0]?.id || null;
+
+function saveFunded() { localStorage.setItem(FUNDED_KEY, JSON.stringify(fundedAccounts)); }
+
+const FA_PRESETS = [
+  { label:'Apex 25K',  size:25000,  target:1500, daily:500,  dd:1500, days:0, consistency:30 },
+  { label:'Apex 50K',  size:50000,  target:3000, daily:1000, dd:2500, days:0, consistency:30 },
+  { label:'Apex 100K', size:100000, target:6000, daily:2000, dd:3000, days:0, consistency:30 },
+  { label:'Apex 150K', size:150000, target:9000, daily:3000, dd:4500, days:0, consistency:30 },
+  { label:'FTMO 10K',  size:10000,  target:1000, daily:500,  dd:1000, days:4, consistency:0  },
+  { label:'FTMO 25K',  size:25000,  target:2500, daily:1250, dd:2500, days:4, consistency:0  },
+  { label:'FTMO 50K',  size:50000,  target:5000, daily:2500, dd:5000, days:4, consistency:0  },
+  { label:'FTMO 100K', size:100000, target:10000,daily:5000, dd:10000,days:4, consistency:0  },
+  { label:'TopStep 50K', size:50000, target:3000,daily:1000, dd:2000, days:0, consistency:0  },
+  { label:'TopStep 100K',size:100000,target:6000,daily:2000, dd:3000, days:0, consistency:0  },
+];
+
+function computeFundedMetrics(account) {
+  const start = account.startDate;
+  const allKeys = Object.keys(trades).filter(k => k >= start).sort();
+  // daily P&L map
+  const dailyPnl = {};
+  allKeys.forEach(k => {
+    const dd = normalizeDayData(k);
+    const sum = (dd.tradeList||[]).reduce((s,t) => s + (t.pnl ?? 0), 0);
+    if (sum !== 0) dailyPnl[k] = sum;
+  });
+  const tradingDays = Object.keys(dailyPnl).length;
+  const totalPnl = Object.values(dailyPnl).reduce((s,v) => s+v, 0);
+  const worstDay = Math.min(0, ...Object.values(dailyPnl), 0);
+  // max drawdown (running)
+  let peak = 0, runPnl = 0, maxDD = 0;
+  allKeys.forEach(k => {
+    runPnl += dailyPnl[k] || 0;
+    if (runPnl > peak) peak = runPnl;
+    const dd = peak - runPnl;
+    if (dd > maxDD) maxDD = dd;
+  });
+  // consistency: biggest single day profit as % of total
+  const biggestDay = Math.max(0, ...Object.values(dailyPnl).filter(v=>v>0), 0);
+  const consistencyPct = totalPnl > 0 ? Math.round(biggestDay / totalPnl * 100) : 0;
+  return { totalPnl, worstDay, maxDD, tradingDays, dailyPnl, consistencyPct, biggestDay };
+}
+
+function metricStatus(current, limit, isLoss) {
+  if (isLoss) {
+    const pct = limit > 0 ? Math.abs(current) / limit : 0;
+    if (pct >= 1) return 'fail';
+    if (pct >= 0.8) return 'warn';
+    return 'pass';
+  } else {
+    if (current >= limit) return 'pass';
+    if (current >= limit * 0.7) return 'warn';
+    return 'pass'; // not reached yet, neutral
+  }
+}
+
+function renderFunded() {
+  const sidebar = document.getElementById('funded-sidebar');
+  const main    = document.getElementById('funded-main');
+
+  // Sidebar
+  sidebar.innerHTML = `<button class="funded-add-btn" id="funded-add-btn">+ Přidat účet</button>`;
+  fundedAccounts.forEach(acc => {
+    const m = computeFundedMetrics(acc);
+    const statuses = [];
+    if (acc.rules.daily    > 0) statuses.push(metricStatus(m.worstDay, acc.rules.daily, true));
+    if (acc.rules.dd       > 0) statuses.push(metricStatus(m.maxDD,    acc.rules.dd,    true));
+    if (acc.rules.target   > 0 && m.totalPnl >= acc.rules.target) statuses.push('pass');
+    if (acc.rules.consistency > 0) statuses.push(m.consistencyPct > acc.rules.consistency ? 'fail' : 'pass');
+    const dot = statuses.includes('fail') ? 'fail' : statuses.includes('warn') ? 'warn' : 'pass';
+    const btn = document.createElement('button');
+    btn.className = 'funded-account-btn' + (acc.id === selectedFundedId ? ' active' : '');
+    btn.innerHTML = `<div class="funded-status-dot ${dot}"></div><div class="funded-account-name">${acc.name}</div>`;
+    btn.onclick = () => { selectedFundedId = acc.id; renderFunded(); };
+    sidebar.appendChild(btn);
+  });
+  document.getElementById('funded-add-btn').onclick = () => openFaModal();
+
+  // Main
+  if (!fundedAccounts.length) {
+    main.innerHTML = `<div class="funded-empty"><div class="funded-empty-icon">📊</div><div class="funded-empty-txt">Žádné funded účty</div><div class="funded-empty-sub">Přidej svůj první účet tlačítkem vlevo</div></div>`;
+    return;
+  }
+  const acc = fundedAccounts.find(a => a.id === selectedFundedId) || fundedAccounts[0];
+  if (!acc) return;
+  const m = computeFundedMetrics(acc);
+  const r = acc.rules;
+
+  // Overall verdict
+  let fails = 0, warns = 0;
+  const dailyS = r.daily > 0 ? metricStatus(m.worstDay, r.daily, true) : 'pass';
+  const ddS     = r.dd    > 0 ? metricStatus(m.maxDD,   r.dd,   true) : 'pass';
+  const consS   = r.consistency > 0 && m.consistencyPct > r.consistency ? 'fail' : 'pass';
+  [dailyS, ddS, consS].forEach(s => { if(s==='fail') fails++; if(s==='warn') warns++; });
+  const verdict = fails > 0 ? 'fail' : warns > 0 ? 'warn' : 'pass';
+  const verdictText = fails > 0 ? '❌ Porušuješ pravidla — výzva by byla ukončena' :
+    warns > 0 ? '⚠️ Blížíš se limitům — buď opatrný' : '✅ Výsledky jsou v pořádku — zatím prošel';
+
+  const fmtV = v => fmtPnl(Math.round(convertPnl(v)));
+  const startFmt = acc.startDate ? acc.startDate.split('-').reverse().join('.') : '—';
+
+  main.innerHTML = `
+    <div class="funded-dashboard">
+      <div class="funded-dash-head">
+        <div>
+          <div class="funded-dash-name">${acc.name}</div>
+          <div class="funded-dash-meta">Zahájeno: ${startFmt} &nbsp;·&nbsp; ${m.tradingDays} obchodních dní</div>
+        </div>
+        <div class="funded-dash-actions">
+          <button class="funded-action-btn" id="funded-edit-btn">Upravit</button>
+          <button class="funded-action-btn danger" id="funded-del-btn">Smazat</button>
+        </div>
+      </div>
+
+      <div class="funded-verdict ${verdict}">
+        <div class="funded-verdict-icon">${verdict==='pass'?'✅':verdict==='warn'?'⚠️':'❌'}</div>
+        <div>${verdictText}</div>
+      </div>
+
+      <div class="funded-grid">
+        ${metricCard('Profit Target', fmtV(m.totalPnl), fmtV(r.target),
+          r.target > 0 ? Math.min(100, Math.round(m.totalPnl/r.target*100)) : 0,
+          m.totalPnl >= r.target ? 'pass' : m.totalPnl >= r.target*0.7 ? 'warn' : 'pass',
+          m.totalPnl >= r.target ? '✓ Dosaženo' : `zbývá ${fmtV(r.target - m.totalPnl)}`)}
+        ${r.daily > 0 ? metricCard('Max denní ztráta', fmtV(m.worstDay), fmtV(-r.daily),
+          Math.min(100, Math.round(Math.abs(m.worstDay)/r.daily*100)),
+          dailyS,
+          dailyS==='fail'?'✗ Porušeno':dailyS==='warn'?'⚠ Blíží se limitu':'✓ V pořádku') : ''}
+        ${r.dd > 0 ? metricCard('Max drawdown', fmtV(-m.maxDD), fmtV(-r.dd),
+          Math.min(100, Math.round(m.maxDD/r.dd*100)),
+          ddS,
+          ddS==='fail'?'✗ Porušeno':ddS==='warn'?'⚠ Blíží se limitu':'✓ V pořádku') : ''}
+        ${r.days > 0 ? metricCard('Min obchodní dny', m.tradingDays + ' dní', r.days + ' dní',
+          Math.min(100, Math.round(m.tradingDays/r.days*100)),
+          m.tradingDays >= r.days ? 'pass' : 'warn',
+          m.tradingDays >= r.days ? '✓ Splněno' : `zbývá ${r.days - m.tradingDays} dní`) : ''}
+        ${r.consistency > 0 ? metricCard('Consistency rule', m.consistencyPct + '%', r.consistency + '%',
+          Math.min(100, m.consistencyPct),
+          consS,
+          consS==='fail'?`✗ Největší den = ${m.consistencyPct}% zisku`:'✓ V pořádku') : ''}
+      </div>
+
+      ${Object.keys(m.dailyPnl).length > 0 ? `
+      <div>
+        <div class="stats-card-title" style="margin-bottom:8px">Denní přehled</div>
+        <div class="funded-daily-table">
+          <div class="funded-daily-head"><div>Datum</div><div>P&amp;L</div><div>Drawdown limit</div><div>Status</div></div>
+          ${Object.entries(m.dailyPnl).sort(([a],[b])=>b.localeCompare(a)).map(([date, pnl]) => {
+            const fmtDate = date.split('-').reverse().join('.');
+            const ds = r.daily > 0 ? metricStatus(pnl < 0 ? pnl : 0, r.daily, true) : 'pass';
+            const icon = ds==='fail'?'❌':ds==='warn'?'⚠️':'✓';
+            const converted = Math.round(convertPnl(pnl));
+            const pnlFmt = fmtPnl(converted);
+            return `<div class="funded-daily-row row-${ds}"><div>${fmtDate}</div><div style="color:${pnl>=0?'var(--win)':'var(--loss)'}">${pnlFmt}</div><div style="color:var(--muted)">${r.daily > 0 ? fmtPnl(Math.round(convertPnl(-r.daily))) : '—'}</div><div>${icon}</div></div>`;
+          }).join('')}
+        </div>
+      </div>` : ''}
+    </div>
+  `;
+  document.getElementById('funded-edit-btn').onclick = () => openFaModal(acc);
+  document.getElementById('funded-del-btn').onclick  = () => {
+    if (!confirm(`Smazat "${acc.name}"?`)) return;
+    fundedAccounts = fundedAccounts.filter(a => a.id !== acc.id);
+    selectedFundedId = fundedAccounts[0]?.id || null;
+    saveFunded(); renderFunded();
+  };
+}
+
+function metricCard(title, current, target, pct, status, statusTxt) {
+  return `<div class="funded-metric status-${status}">
+    <div class="funded-metric-title">${title}</div>
+    <div class="funded-metric-val">${current}</div>
+    <div class="funded-metric-target">cíl: ${target}</div>
+    <div class="funded-bar-wrap"><div class="funded-bar ${status}" style="width:${pct}%"></div></div>
+    <div class="funded-metric-status ${status}">${statusTxt}</div>
+  </div>`;
+}
+
+// ── Funded modal ──────────────────────────────────────────────
+let faEditId = null;
+
+function openFaModal(acc) {
+  faEditId = acc?.id || null;
+  document.getElementById('fa-title').textContent = acc ? 'Upravit účet' : 'Přidat účet';
+  document.getElementById('fa-name').value    = acc?.name || '';
+  document.getElementById('fa-start').value   = acc?.startDate || dk(now);
+  document.getElementById('fa-target').value  = acc?.rules.target || '';
+  document.getElementById('fa-daily').value   = acc?.rules.daily  || '';
+  document.getElementById('fa-dd').value      = acc?.rules.dd     || '';
+  document.getElementById('fa-days').value    = acc?.rules.days   || '';
+  document.getElementById('fa-consistency').value = acc?.rules.consistency || '';
+  document.getElementById('fa-size').value    = acc?.size || '';
+  // Presets
+  const presetsEl = document.getElementById('fa-presets');
+  presetsEl.innerHTML = '';
+  FA_PRESETS.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'fa-preset-btn';
+    btn.textContent = p.label;
+    btn.onclick = () => {
+      document.getElementById('fa-name').value = p.label;
+      document.getElementById('fa-target').value = p.target;
+      document.getElementById('fa-daily').value  = p.daily;
+      document.getElementById('fa-dd').value     = p.dd;
+      document.getElementById('fa-days').value   = p.days;
+      document.getElementById('fa-consistency').value = p.consistency;
+      document.getElementById('fa-size').value   = p.size;
+    };
+    presetsEl.appendChild(btn);
+  });
+  document.getElementById('fa-overlay').classList.add('open');
+}
+function closeFaModal() { document.getElementById('fa-overlay').classList.remove('open'); }
+
+document.getElementById('fa-x').onclick = closeFaModal;
+document.getElementById('fa-cancel').onclick = closeFaModal;
+document.getElementById('fa-overlay').onclick = e => { if(e.target===document.getElementById('fa-overlay')) closeFaModal(); };
+document.getElementById('fa-save').onclick = () => {
+  const name  = document.getElementById('fa-name').value.trim();
+  const start = document.getElementById('fa-start').value;
+  if (!name || !start) { showToast('Vyplňte název a datum'); return; }
+  const rules = {
+    target:      parseFloat(document.getElementById('fa-target').value) || 0,
+    daily:       parseFloat(document.getElementById('fa-daily').value)  || 0,
+    dd:          parseFloat(document.getElementById('fa-dd').value)     || 0,
+    days:        parseInt(document.getElementById('fa-days').value)     || 0,
+    consistency: parseFloat(document.getElementById('fa-consistency').value) || 0,
+  };
+  if (faEditId) {
+    const idx = fundedAccounts.findIndex(a => a.id === faEditId);
+    if (idx >= 0) fundedAccounts[idx] = { ...fundedAccounts[idx], name, startDate: start, rules, size: parseFloat(document.getElementById('fa-size').value)||0 };
+  } else {
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+    fundedAccounts.push({ id, name, startDate: start, rules, size: parseFloat(document.getElementById('fa-size').value)||0 });
+    selectedFundedId = id;
+  }
+  saveFunded(); closeFaModal(); renderFunded();
+};

@@ -28,6 +28,7 @@
     <div class="topbar-tabs">
       <button class="topbar-tab active" id="tab-calendar">Kalendář</button>
       <button class="topbar-tab" id="tab-stats">Statistiky</button>
+      <button class="topbar-tab" id="tab-funded">Funded</button>
     </div>
     <button class="settings-btn" id="settings-btn" title="Nastavení">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -78,6 +79,46 @@
     <!-- Stats view -->
     <div class="stats-wrap" id="view-stats" style="display:none">
       <div class="stats-inner" id="stats-inner"></div>
+    </div>
+
+    <!-- Funded view -->
+    <div class="funded-wrap" id="view-funded" style="display:none">
+      <div class="funded-sidebar" id="funded-sidebar"></div>
+      <div class="funded-main" id="funded-main"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Funded account editor -->
+<div class="fa-overlay" id="fa-overlay">
+  <div class="fa-modal" id="fa-modal">
+    <div class="fa-head">
+      <div class="fa-title" id="fa-title">Přidat účet</div>
+      <button class="fa-x" id="fa-x">✕</button>
+    </div>
+    <div class="fa-body">
+      <div class="fa-presets" id="fa-presets"></div>
+      <div class="fa-divider">nebo vlastní nastavení</div>
+      <div class="fa-form" id="fa-form">
+        <div class="fa-row2">
+          <div class="fa-field"><div class="fa-lbl">Název</div><input class="fa-inp" id="fa-name" placeholder="např. Apex 50K"/></div>
+          <div class="fa-field"><div class="fa-lbl">Datum zahájení</div><input class="fa-inp" type="date" id="fa-start"/></div>
+        </div>
+        <div class="fa-row4">
+          <div class="fa-field"><div class="fa-lbl">Profit Target ($)</div><input class="fa-inp" type="number" id="fa-target" placeholder="3000"/></div>
+          <div class="fa-field"><div class="fa-lbl">Max denní ztráta ($)</div><input class="fa-inp" type="number" id="fa-daily" placeholder="1000"/></div>
+          <div class="fa-field"><div class="fa-lbl">Max drawdown ($)</div><input class="fa-inp" type="number" id="fa-dd" placeholder="2500"/></div>
+          <div class="fa-field"><div class="fa-lbl">Min dní obchodování</div><input class="fa-inp" type="number" id="fa-days" placeholder="0"/></div>
+        </div>
+        <div class="fa-row2">
+          <div class="fa-field"><div class="fa-lbl">Consistency rule (%)</div><input class="fa-inp" type="number" id="fa-consistency" placeholder="0 = vypnuto"/></div>
+          <div class="fa-field"><div class="fa-lbl">Velikost účtu ($)</div><input class="fa-inp" type="number" id="fa-size" placeholder="50000"/></div>
+        </div>
+      </div>
+    </div>
+    <div class="fa-footer">
+      <button class="fa-btn" id="fa-cancel">Zrušit</button>
+      <button class="fa-btn primary" id="fa-save">Uložit</button>
     </div>
   </div>
 </div>
