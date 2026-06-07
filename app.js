@@ -510,31 +510,52 @@ function openModal(key, date) {
       tfMain.appendChild(area);
     }
 
+    let selectedTF = null;
+
+    async function uploadImageBlob(blob, tf) {
+      const file = new File([blob], `paste_${Date.now()}.png`, { type: blob.type || 'image/png' });
+      const btn = tfSidebar.querySelector(`[data-tf="${tf}"]`);
+      if (btn) { btn.disabled = true; btn.querySelector('span').textContent = '↑'; }
+      try {
+        const url = await uploadScreenshot(file, key, tf);
+        if (!tr.screenshots) tr.screenshots = {};
+        tr.screenshots[tf] = url;
+        renderTFButtons();
+        renderTFMain();
+        showToast(`Screenshot nahrán → ${tf}`);
+      } catch(e) {
+        console.error(e);
+        showToast('Upload failed');
+      }
+      if (btn) { btn.disabled = false; }
+    }
+
     function renderTFButtons() {
-      tfSidebar.innerHTML = `<div class="tf-sidebar-title">Timeframes</div>`;
+      tfSidebar.innerHTML = `<div class="tf-sidebar-title">Timeframes <span style="font-size:9px;font-weight:400;color:var(--muted2);text-transform:none;letter-spacing:0">Ctrl+V</span></div>`;
       TFS.forEach(tf => {
         const hasImg = !!tr.screenshots?.[tf];
         const btn = document.createElement('button');
-        btn.className = 'tf-btn' + (hasImg ? ' has-img' : '');
+        btn.dataset.tf = tf;
+        const isSel = selectedTF === tf && !hasImg;
+        btn.className = 'tf-btn' + (hasImg ? ' has-img' : '') + (isSel ? ' tf-btn-sel' : '');
         btn.innerHTML = `<span>${tf}</span><span class="tf-dot-ind"></span>`;
         btn.onclick = () => {
           if (hasImg) { document.getElementById(`wrap-${tf}`)?.scrollIntoView({behavior:'smooth',block:'nearest'}); return; }
+          selectedTF = selectedTF === tf ? null : tf;
+          renderTFButtons();
+          if (selectedTF !== tf) return;
           const input = document.createElement('input');
           input.type = 'file'; input.accept = 'image/*';
           input.onchange = async () => {
             const file = input.files[0]; if (!file) return;
-            btn.disabled = true;
-            btn.querySelector('span').textContent = '↑';
+            btn.disabled = true; btn.querySelector('span').textContent = '↑';
             try {
               const url = await uploadScreenshot(file, key, tf);
               if (!tr.screenshots) tr.screenshots = {};
               tr.screenshots[tf] = url;
-              renderTFButtons();
-              renderTFMain();
-            } catch(e) {
-              console.error(e);
-              showToast('Upload failed');
-            }
+              selectedTF = null;
+              renderTFButtons(); renderTFMain();
+            } catch(e) { console.error(e); showToast('Upload failed'); }
             btn.disabled = false;
           };
           input.click();
@@ -542,6 +563,31 @@ function openModal(key, date) {
         tfSidebar.appendChild(btn);
       });
     }
+
+    function onModalPaste(e) {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (!item.type.startsWith('image/')) continue;
+        const blob = item.getAsFile();
+        if (!blob) continue;
+        let target = selectedTF;
+        if (!target) target = TFS.find(tf => !tr.screenshots?.[tf]);
+        if (!target) { showToast('Všechny TF mají screenshot'); return; }
+        e.preventDefault();
+        uploadImageBlob(blob, target);
+        return;
+      }
+    }
+
+    if (!document._tjPasteAttached) {
+      document._tjPasteAttached = true;
+      document.addEventListener('paste', e => {
+        if (!document.getElementById('overlay').classList.contains('open')) return;
+        document._tjPasteHandler?.(e);
+      });
+    }
+    document._tjPasteHandler = onModalPaste;
 
     renderTFButtons();
     renderTFMain();

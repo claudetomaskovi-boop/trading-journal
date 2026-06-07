@@ -233,6 +233,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 .tf-btn{display:flex;align-items:center;justify-content:center;padding:6px 8px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg3);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;color:var(--muted);transition:all .15s;text-transform:uppercase;letter-spacing:.04em;position:relative;}
 .tf-btn:hover{border-color:var(--accent);color:var(--accent)}
 .tf-btn.has-img{border-color:var(--accent);color:var(--accent);background:rgba(37,99,235,.07)}
+.tf-btn.tf-btn-sel{border-color:var(--accent);color:#fff;background:var(--accent)}
 .tf-btn .tf-dot-ind{width:5px;height:5px;border-radius:50%;background:var(--accent);flex-shrink:0;display:none;position:absolute;right:7px;top:50%;transform:translateY(-50%);}
 .tf-btn.has-img .tf-dot-ind{display:block}
 
