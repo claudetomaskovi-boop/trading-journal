@@ -1162,6 +1162,7 @@ function renderStats() {
         }]
       },
       options: {
+        animation: false,
         maintainAspectRatio: false,
         scales: {
           x: { ticks: { font, color: '#6b7590' }, grid: { color: gridColor } },
@@ -1185,6 +1186,7 @@ function renderStats() {
         }]
       },
       options: {
+        animation: false,
         maintainAspectRatio: false,
         scales: {
           x: { ticks: { font, color: '#6b7590' }, grid: { color: gridColor } },
