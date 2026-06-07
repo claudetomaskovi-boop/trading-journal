@@ -397,7 +397,7 @@ function openModal(key, date) {
   let activeIdx = 0;
 
   document.getElementById('modal-date').textContent =
-    `${MONTHS_EN[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+    `${date.getDate()}. ${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
 
   const body = document.getElementById('modal-body');
 
@@ -745,7 +745,7 @@ function openTradesList(type, tab, crFrom, crTo) {
     list.innerHTML = items.map(([k]) => {
       const dd = normalizeDayData(k);
       const d = new Date(k);
-      const dateStr = `${MONTHS_EN[d.getMonth()].slice(0,3)} ${d.getDate()}, ${d.getFullYear()}`;
+      const dateStr = `${d.getDate()}. ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
       const matching = (dd.tradeList || []).filter(t => t.result === type);
       const rrSum = matching.reduce((s, t) => {
         const v = t.result === 'loss' ? -(t.rr ?? 1) : (t.rr ?? 0);
@@ -799,7 +799,7 @@ function closeCustomRange() {
 
 function renderCrCal() {
   const todayStr = dk(now);
-  document.getElementById('cr-cal-label').textContent = `${MONTHS_EN[crPickMonth]} ${crPickYear}`;
+  document.getElementById('cr-cal-label').textContent = `${MONTHS[crPickMonth]} ${crPickYear}`;
   document.getElementById('cr-prev').disabled = crPickYear === 2020 && crPickMonth === 0;
   document.getElementById('cr-next').disabled = crPickYear === now.getFullYear() && crPickMonth === now.getMonth();
 
@@ -987,7 +987,7 @@ function renderStats() {
   const months = Object.keys(byMonth).sort();
   const monthLabels = months.map(m => {
     const [y, mo] = m.split('-');
-    return `${MONTHS_EN[parseInt(mo)-1].slice(0,3)} ${y}`;
+    return `${MONTHS[parseInt(mo)-1].slice(0,3)} ${y}`;
   });
   const monthRR = months.map(m => Math.round(byMonth[m].rr * 100) / 100);
 
@@ -1074,7 +1074,15 @@ function renderStats() {
     btn.onclick = () => {
       if (btn.dataset.p === 'custom') { openCustomRange(); return; }
       statsPeriod = btn.dataset.p;
-      renderStats();
+      const inner = document.getElementById('stats-inner');
+      inner.style.opacity = '0';
+      inner.style.transition = 'opacity .15s ease';
+      setTimeout(() => {
+        renderStats();
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          inner.style.opacity = '1';
+        }));
+      }, 150);
     };
   });
 
