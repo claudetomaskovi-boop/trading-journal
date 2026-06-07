@@ -774,8 +774,9 @@ function getAllTrades() {
 
 function renderStats() {
   const prefix = `${viewYear}-${String(viewMonth+1).padStart(2,'0')}`;
+  const nowPrefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   let filterFn;
-  if (statsPeriod === 'month')  filterFn = t => t.key.startsWith(prefix);
+  if (statsPeriod === 'month')  filterFn = t => t.key.startsWith(nowPrefix);
   else if (statsPeriod === 'custom' && customRangeFrom && customRangeTo)
     filterFn = t => t.key >= customRangeFrom && t.key <= customRangeTo;
   else filterFn = () => true;
@@ -862,7 +863,7 @@ function renderStats() {
   const el = document.getElementById('stats-inner');
   el.innerHTML = `
     <div class="stats-period-bar">
-      <button class="stats-period-btn${statsPeriod==='month'?' active':''}" data-p="month">${MONTHS_EN[viewMonth]}</button>
+      <button class="stats-period-btn${statsPeriod==='month'?' active':''}" data-p="month">${MONTHS_EN[now.getMonth()]}</button>
       <button class="stats-period-btn${statsPeriod==='total'?' active':''}" data-p="total">All Time</button>
       <button class="stats-period-btn${statsPeriod==='custom'?' active':''}" data-p="custom">Custom${crLbl ? ': '+crLbl : ''}</button>
     </div>
