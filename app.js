@@ -1128,6 +1128,7 @@ function renderStats() {
         datasets: [{ data: [wins, losses, bes], backgroundColor: themeColors().donut, borderWidth: 2, borderColor: getComputedStyle(document.body).getPropertyValue('--bg').trim() || '#f0f1f3' }]
       },
       options: {
+        animation: false,
         maintainAspectRatio: false,
         cutout: '62%',
         layout: { padding: 8 },
