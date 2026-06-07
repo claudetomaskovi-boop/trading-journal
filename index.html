@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Trading Journal</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<div class="shell">
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="logo-name">Trading Journal</div>
+    <div class="topbar-tabs">
+      <button class="topbar-tab active" id="tab-calendar">Kalendář</button>
+      <button class="topbar-tab" id="tab-stats">Statistiky</button>
+    </div>
+    <div class="topbar-mode" id="topbar-mode">
+      <button class="mode-btn active" data-m="both">RR + $</button>
+      <button class="mode-btn" data-m="rr">RR</button>
+      <button class="mode-btn" data-m="pnl">$</button>
+    </div>
+  </div>
+
+  <div class="body">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <!-- Calendar view -->
+    <div class="cal-wrap" id="view-calendar">
+      <div class="cal-nav">
+        <button class="nav-btn" id="prev">&#8592;</button>
+        <div class="month-label" id="month-label"></div>
+        <button class="nav-btn" id="next">&#8594;</button>
+      </div>
+      <div class="cal-inner">
+        <div class="day-names" id="day-names"></div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+    </div>
+
+    <!-- Stats view -->
+    <div class="stats-wrap" id="view-stats" style="display:none">
+      <div class="stats-inner" id="stats-inner"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal">
+    <div class="modal-head">
+      <div class="modal-date" id="modal-date"></div>
+      <button class="modal-x" id="modal-x">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightbox-close">✕</button>
+  <div class="lightbox-inner">
+    <img id="lightbox-img" src="" alt=""/>
+    <div class="lightbox-side">
+      <div class="lightbox-tf-label" id="lightbox-label"></div>
+      <div class="lightbox-notes" id="lightbox-notes"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Trades list -->
+<div class="tl-overlay" id="tl-overlay">
+  <div class="tl-modal">
+    <div class="tl-head">
+      <div class="tl-title" id="tl-title"></div>
+      <button class="tl-x" id="tl-x">✕</button>
+    </div>
+    <div class="tl-list" id="tl-list"></div>
+  </div>
+</div>
+
+<!-- Custom range picker -->
+<div class="cr-overlay" id="cr-overlay">
+  <div class="cr-modal">
+    <div class="cr-head">
+      <div class="cr-title">Custom Period</div>
+      <button class="cr-x" id="cr-x">✕</button>
+    </div>
+    <div class="cr-body">
+      <div class="cr-row">
+        <div class="cr-lbl">From</div>
+        <input class="cr-input" type="date" id="cr-from"/>
+      </div>
+      <div class="cr-row">
+        <div class="cr-lbl">To</div>
+        <input class="cr-input" type="date" id="cr-to"/>
+      </div>
+    </div>
+    <div class="cr-footer">
+      <button class="cr-btn" id="cr-cancel">Cancel</button>
+      <button class="cr-btn primary" id="cr-apply">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">Saved ✓</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
