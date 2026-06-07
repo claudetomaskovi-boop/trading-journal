@@ -235,7 +235,7 @@ function renderSidebar() {
     ${displayMode !== 'rr' ? `
     <div class="stat-block">
       <div class="stat-label">P&L</div>
-      <div class="stat-val ${monthPnl >= 0 ? 'green' : 'red'}">${monthPnl >= 0 ? '+' : ''}$${monthPnl.toLocaleString()}</div>
+      <div class="stat-val ${monthPnl >= 0 ? 'green' : 'red'}">${monthPnl >= 0 ? '+$' : '-$'}${Math.abs(monthPnl).toLocaleString()}</div>
     </div>` : ''}
     <div style="margin-top:auto;padding-top:10px;">
       <button onclick="doLogout()" style="width:100%;padding:6px 0;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s" onmouseover="this.style.borderColor='var(--border2)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">Odhlásit se</button>
@@ -388,7 +388,7 @@ function openModal(key, date) {
         ? `-${tr.rr ?? 1}R`
         : (tr.rr ? `+${tr.rr}R` : '');
       const pnlDisplay = tr.pnl != null && tr.pnl !== 0
-        ? `<span class="trade-item-pnl" style="color:${tr.pnl>0?'var(--win)':'var(--loss)'}">${tr.pnl>0?'+':''}$${tr.pnl}</span>`
+        ? `<span class="trade-item-pnl" style="color:${tr.pnl>0?'var(--win)':'var(--loss)'}">${tr.pnl>0?'+$':'-$'}${Math.abs(tr.pnl)}</span>`
         : '';
       item.innerHTML = `
         <span class="trade-item-num">#${i+1}</span>
@@ -826,7 +826,7 @@ function renderStats() {
   const rrKpiClass  = rrSum >= 0 ? 'green' : 'red';
   const pnlKpiClass = totalPnl >= 0 ? 'green' : 'red';
   const rrKpiVal    = rrN > 0 ? (rrSum >= 0 ? '+' : '') + Math.round(rrSum*100)/100 + 'R' : '—';
-  const pnlKpiVal   = (totalPnl >= 0 ? '+' : '') + '$' + totalPnl.toLocaleString();
+  const pnlKpiVal   = (totalPnl >= 0 ? '+$' : '-$') + Math.abs(totalPnl).toLocaleString();
   const streakVal   = calcStreak(all);
 
   const rrKpiHtml = showRR ? `
