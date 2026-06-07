@@ -91,16 +91,16 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 /* ── Calendar ── */
 .cal-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:16px;gap:6px;overflow-y:auto;background:var(--bg2);position:absolute;inset:0;left:158px;transition:opacity .2s ease;}
 .cal-wrap::before,.cal-wrap::after{content:'';flex:1;min-height:0}
-.cal-nav{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;max-width:660px;}
+.cal-nav{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;max-width:820px;}
 .cal-inner{
-  display:flex;flex-direction:column;gap:5px;width:100%;max-width:660px;
+  display:flex;flex-direction:column;gap:6px;width:100%;max-width:820px;
   background:var(--bg3);
   border:1px solid var(--border2);
   border-radius:12px;
-  padding:14px;
+  padding:18px;
   box-shadow:0 4px 6px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.08), 0 20px 48px rgba(0,0,0,.06);
 }
-.day-names{display:grid;grid-template-columns:repeat(5,1fr);gap:3px}
+.day-names{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
 .day-name{
   text-align:center;font-size:10px;font-weight:600;
   text-transform:uppercase;letter-spacing:.1em;color:var(--muted);padding:3px 0;
@@ -108,7 +108,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 .cal-grid{
   display:grid;
   grid-template-columns:repeat(5,1fr);
-  gap:3px;
+  gap:5px;
 }
 @keyframes stat-fade{from{opacity:0}to{opacity:1}}
 @keyframes slide-in-right{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}
@@ -121,7 +121,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 /* ── Cells ── */
 .cell{
   background:var(--bg);border:1px solid var(--border);
-  border-radius:var(--r);padding:7px 8px;
+  border-radius:var(--r);padding:10px 11px;
   display:flex;flex-direction:column;gap:2px;
   position:relative;overflow:hidden;
   aspect-ratio: unset;
