@@ -426,7 +426,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 .cr-overlay.open{display:flex}
 .cr-modal{
   background:var(--bg);border:1px solid var(--border);
-  border-radius:10px;width:320px;max-width:94vw;
+  border-radius:10px;width:308px;max-width:94vw;
   box-shadow:0 16px 48px rgba(0,0,0,.16);
   animation:modal-in .18s cubic-bezier(.34,1.3,.64,1);
   overflow:hidden;
@@ -442,17 +442,40 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
   display:flex;align-items:center;justify-content:center;transition:all .15s;
 }
 .cr-x:hover{background:var(--loss);color:#fff;border-color:var(--loss)}
-.cr-body{padding:16px;display:flex;flex-direction:column;gap:12px;}
-.cr-row{display:flex;flex-direction:column;gap:4px;}
-.cr-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
-.cr-input{
-  background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);
-  color:var(--text);font-size:13px;font-weight:500;
-  padding:7px 10px;outline:none;width:100%;
-  font-family:'Plus Jakarta Sans',sans-serif;transition:border-color .15s;
+.cr-cal-wrap{padding:12px 14px 0;}
+.cr-cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.cr-cal-label{font-size:13px;font-weight:600;color:var(--text)}
+.cr-nav-btn{
+  width:26px;height:26px;border-radius:var(--r);border:1px solid var(--border);
+  background:var(--bg3);color:var(--muted);font-size:12px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;
 }
-.cr-input:focus{border-color:var(--accent)}
-.cr-footer{display:flex;gap:6px;justify-content:flex-end;padding:12px 16px;border-top:1px solid var(--border);}
+.cr-nav-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.cr-nav-btn:disabled{opacity:.3;pointer-events:none}
+.cr-day-names{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px;}
+.cr-day-name{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted2);text-align:center;padding:2px 0;}
+.cr-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.cr-day{
+  aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:500;color:var(--text);border-radius:var(--r);
+  cursor:pointer;transition:background .12s,color .12s;position:relative;
+}
+.cr-day:hover:not(.cr-day-empty):not(.cr-day-future){background:var(--bg3);}
+.cr-day-empty,.cr-day-future{color:var(--muted2);pointer-events:none;opacity:.35;}
+.cr-day.cr-day-start,.cr-day.cr-day-end{background:var(--accent);color:#fff;border-radius:var(--r);}
+.cr-day.cr-day-in-range{background:rgba(37,99,235,.12);color:var(--accent);border-radius:0;}
+.cr-day.cr-day-start{border-radius:var(--r) 0 0 var(--r);}
+.cr-day.cr-day-end{border-radius:0 var(--r) var(--r) 0;}
+.cr-day.cr-day-start.cr-day-end{border-radius:var(--r);}
+.cr-day.cr-day-today::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--accent);}
+.cr-day.cr-day-start.cr-day-today::after,.cr-day.cr-day-end.cr-day-today::after{background:#fff;}
+.cr-sel-bar{
+  margin:10px 14px 0;padding:8px 12px;border-radius:var(--r);
+  background:var(--bg3);border:1px solid var(--border);
+  font-size:11px;font-weight:500;color:var(--muted);text-align:center;
+}
+.cr-sel-bar.has-range{color:var(--accent);border-color:rgba(37,99,235,.3);background:rgba(37,99,235,.06);}
+.cr-footer{display:flex;gap:6px;justify-content:flex-end;padding:12px 14px;margin-top:10px;border-top:1px solid var(--border);}
 .cr-btn{
   padding:7px 18px;border-radius:var(--r);border:1px solid var(--border);
   background:var(--bg3);color:var(--muted);font-size:12px;font-weight:500;
@@ -461,6 +484,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 .cr-btn:hover{border-color:var(--accent);color:var(--text)}
 .cr-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .cr-btn.primary:hover{opacity:.85}
+.cr-btn.primary:disabled{opacity:.4;cursor:default;pointer-events:none}
 
 /* ── Topbar mode toggle ── */
 .topbar-mode{display:flex;gap:2px;margin-left:auto;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:2px;}

@@ -698,15 +698,16 @@ document.getElementById('tl-overlay').onclick = e => {
   if (e.target === document.getElementById('tl-overlay')) closeTL();
 };
 
-// ── Custom Range ──────────────────────────────────────────────
+// ── Custom Range Calendar ─────────────────────────────────────
+let crPickYear = now.getFullYear(), crPickMonth = now.getMonth();
+let crPickFrom = null, crPickTo = null, crPickStep = 0; // 0=idle,1=picking start,2=picking end
+
 function openCustomRange() {
-  const todayStr = dk(now);
-  if (!document.getElementById('cr-from').value)
-    document.getElementById('cr-from').value = customRangeFrom || todayStr.slice(0,7)+'-01';
-  if (!document.getElementById('cr-to').value)
-    document.getElementById('cr-to').value = customRangeTo || todayStr;
-  document.getElementById('cr-from').max = todayStr;
-  document.getElementById('cr-to').max   = todayStr;
+  crPickYear = now.getFullYear(); crPickMonth = now.getMonth();
+  crPickFrom = customRangeFrom || null;
+  crPickTo   = customRangeTo   || null;
+  crPickStep = crPickFrom ? 0 : 1;
+  renderCrCal();
   document.getElementById('cr-overlay').classList.add('open');
 }
 
@@ -714,18 +715,86 @@ function closeCustomRange() {
   document.getElementById('cr-overlay').classList.remove('open');
 }
 
+function renderCrCal() {
+  const todayStr = dk(now);
+  document.getElementById('cr-cal-label').textContent = `${MONTHS_EN[crPickMonth]} ${crPickYear}`;
+  document.getElementById('cr-prev').disabled = crPickYear === 2020 && crPickMonth === 0;
+  document.getElementById('cr-next').disabled = crPickYear === now.getFullYear() && crPickMonth === now.getMonth();
+
+  // day names
+  const dnEl = document.querySelector('.cr-day-names');
+  dnEl.innerHTML = ['Po','Út','St','Čt','Pá','So','Ne'].map(d=>`<div class="cr-day-name">${d}</div>`).join('');
+
+  const grid = document.getElementById('cr-grid');
+  grid.innerHTML = '';
+  const first = new Date(crPickYear, crPickMonth, 1);
+  const daysInMonth = new Date(crPickYear, crPickMonth+1, 0).getDate();
+  const startDow = (first.getDay() + 6) % 7; // Mon=0
+  for (let i = 0; i < startDow; i++) {
+    const el = document.createElement('div'); el.className='cr-day cr-day-empty'; grid.appendChild(el);
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const key = `${crPickYear}-${String(crPickMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isFuture = key > todayStr;
+    const el = document.createElement('div');
+    let cls = 'cr-day';
+    if (isFuture) cls += ' cr-day-future';
+    if (key === todayStr) cls += ' cr-day-today';
+    if (crPickFrom && crPickTo) {
+      if (key === crPickFrom) cls += ' cr-day-start';
+      else if (key === crPickTo) cls += ' cr-day-end';
+      else if (key > crPickFrom && key < crPickTo) cls += ' cr-day-in-range';
+    } else if (crPickFrom && key === crPickFrom) cls += ' cr-day-start cr-day-end';
+    el.className = cls;
+    el.textContent = d;
+    if (!isFuture) el.onclick = () => onCrDayClick(key);
+    grid.appendChild(el);
+  }
+
+  // sel bar
+  const bar = document.getElementById('cr-sel-bar');
+  const applyBtn = document.getElementById('cr-apply');
+  const fmt = s => { const[y,m,d]=s.split('-'); return `${d}.${m}.${y}`; };
+  if (crPickFrom && crPickTo) {
+    bar.textContent = `${fmt(crPickFrom)} — ${fmt(crPickTo)}`;
+    bar.className = 'cr-sel-bar has-range';
+    applyBtn.disabled = false;
+  } else if (crPickFrom) {
+    bar.textContent = `Od: ${fmt(crPickFrom)} → vyberte konec`;
+    bar.className = 'cr-sel-bar';
+    applyBtn.disabled = true;
+  } else {
+    bar.textContent = 'Klikněte na začáteční datum';
+    bar.className = 'cr-sel-bar';
+    applyBtn.disabled = true;
+  }
+}
+
+function onCrDayClick(key) {
+  if (!crPickFrom || (crPickFrom && crPickTo)) {
+    crPickFrom = key; crPickTo = null;
+  } else {
+    if (key < crPickFrom) { crPickTo = crPickFrom; crPickFrom = key; }
+    else crPickTo = key;
+  }
+  renderCrCal();
+}
+
+document.getElementById('cr-prev').onclick = () => {
+  crPickMonth--; if (crPickMonth < 0) { crPickMonth=11; crPickYear--; } renderCrCal();
+};
+document.getElementById('cr-next').onclick = () => {
+  crPickMonth++; if (crPickMonth > 11) { crPickMonth=0; crPickYear++; } renderCrCal();
+};
 document.getElementById('cr-x').onclick = closeCustomRange;
 document.getElementById('cr-cancel').onclick = closeCustomRange;
 document.getElementById('cr-overlay').onclick = e => {
   if (e.target === document.getElementById('cr-overlay')) closeCustomRange();
 };
 document.getElementById('cr-apply').onclick = () => {
-  const from = document.getElementById('cr-from').value;
-  const to   = document.getElementById('cr-to').value;
-  if (!from || !to) { showToast('Fill in both dates'); return; }
-  if (from > to) { showToast('"From" must be before "To"'); return; }
-  customRangeFrom = from;
-  customRangeTo   = to;
+  if (!crPickFrom || !crPickTo) return;
+  customRangeFrom = crPickFrom;
+  customRangeTo   = crPickTo;
   statsPeriod = 'custom';
   closeCustomRange();
   if (activeView === 'stats') renderStats();

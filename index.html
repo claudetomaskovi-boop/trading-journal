@@ -98,22 +98,22 @@
 <div class="cr-overlay" id="cr-overlay">
   <div class="cr-modal">
     <div class="cr-head">
-      <div class="cr-title">Custom Period</div>
+      <div class="cr-title" id="cr-title">Vyberte období</div>
       <button class="cr-x" id="cr-x">✕</button>
     </div>
-    <div class="cr-body">
-      <div class="cr-row">
-        <div class="cr-lbl">From</div>
-        <input class="cr-input" type="date" id="cr-from"/>
+    <div class="cr-cal-wrap">
+      <div class="cr-cal-nav">
+        <button class="cr-nav-btn" id="cr-prev">&#8592;</button>
+        <div class="cr-cal-label" id="cr-cal-label"></div>
+        <button class="cr-nav-btn" id="cr-next">&#8594;</button>
       </div>
-      <div class="cr-row">
-        <div class="cr-lbl">To</div>
-        <input class="cr-input" type="date" id="cr-to"/>
-      </div>
+      <div class="cr-day-names"></div>
+      <div class="cr-grid" id="cr-grid"></div>
     </div>
+    <div class="cr-sel-bar" id="cr-sel-bar">Klikněte na začáteční datum</div>
     <div class="cr-footer">
-      <button class="cr-btn" id="cr-cancel">Cancel</button>
-      <button class="cr-btn primary" id="cr-apply">Apply</button>
+      <button class="cr-btn" id="cr-cancel">Zrušit</button>
+      <button class="cr-btn primary" id="cr-apply" disabled>Použít</button>
     </div>
   </div>
 </div>
