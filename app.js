@@ -204,7 +204,7 @@ function renderSidebar() {
   });
 
   document.getElementById('sidebar').innerHTML = `
-    <div class="sidebar-title">Statistiky <span style="text-transform:none;font-weight:400;letter-spacing:0">— ${MONTHS_EN[viewMonth]}</span></div>
+    <div class="sidebar-title">Statistiky <span style="text-transform:none;font-weight:400;letter-spacing:0">${MONTHS[viewMonth]}</span></div>
     <div class="stat-block">
       <div class="stat-label">Win Rate</div>
       <div class="stat-val blue">${s.wr}</div>
@@ -690,7 +690,7 @@ function openTradesList(type, tab, crFrom, crTo) {
     const fmt = s => s.split('-').reverse().join('.');
     titleSuffix = ` — ${fmt(crFrom)}–${fmt(crTo)}`; filterFn = k => k >= crFrom && k <= crTo;
   } else {
-    titleSuffix = ` — ${MONTHS_EN[viewMonth]}`; filterFn = k => k.startsWith(prefix);
+    titleSuffix = ` — ${MONTHS[viewMonth]}`; filterFn = k => k.startsWith(prefix);
   }
   document.getElementById('tl-title').textContent = labels[type] + titleSuffix;
 
@@ -978,7 +978,7 @@ function renderStats() {
   const el = document.getElementById('stats-inner');
   el.innerHTML = `
     <div class="stats-period-bar">
-      <button class="stats-period-btn${statsPeriod==='month'?' active':''}" data-p="month">${MONTHS_EN[now.getMonth()]}</button>
+      <button class="stats-period-btn${statsPeriod==='month'?' active':''}" data-p="month">${MONTHS[now.getMonth()]}</button>
       <button class="stats-period-btn${statsPeriod==='total'?' active':''}" data-p="total">Celkem</button>
       <button class="stats-period-btn${statsPeriod==='custom'?' active':''}" data-p="custom">Vlastní${crLbl ? ': '+crLbl : ''}</button>
     </div>
@@ -991,12 +991,12 @@ function renderStats() {
       ${rrKpiHtml}
       ${pnlKpiHtml}
       <div class="stats-card">
-        <div class="stats-card-title">Série</div>
+        <div class="stats-card-title">Win Streak</div>
         <div class="stats-kpi dim" style="display:flex;align-items:center;gap:6px">
           <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:#2563eb;flex-shrink:0"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
           ${streakVal}
         </div>
-        <div class="stats-kpi-sub">aktuální série</div>
+        <div class="stats-kpi-sub">aktuální streak</div>
       </div>
     </div>
     <div class="stats-row cols-${chartCols}">
