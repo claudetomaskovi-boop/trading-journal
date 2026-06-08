@@ -914,16 +914,19 @@ let chartInstances = {};
 
 document.getElementById('tab-calendar').onclick = () => switchView('calendar');
 document.getElementById('tab-stats').onclick    = () => switchView('stats');
+document.getElementById('tab-news').onclick     = () => switchView('news');
 
 function switchView(view) {
   if (view === activeView) return;
-  const views = { calendar: 'view-calendar', stats: 'view-stats' };
+  const views = { calendar: 'view-calendar', stats: 'view-stats', news: 'view-news' };
   const outEl = document.getElementById(views[activeView]);
   const inEl  = document.getElementById(views[view]);
   activeView = view;
   document.getElementById('tab-calendar').classList.toggle('active', view === 'calendar');
   document.getElementById('tab-stats').classList.toggle('active', view === 'stats');
+  document.getElementById('tab-news').classList.toggle('active', view === 'news');
   if (view === 'stats') renderStats();
+  if (view === 'news') renderNews();
   // fade out old
   if (outEl) { outEl.style.opacity = '0'; setTimeout(() => { outEl.style.display = 'none'; }, 200); }
   // fade in new
@@ -1269,4 +1272,161 @@ document.querySelectorAll('#currency-opts .settings-opt').forEach(b => {
     });
   };
 });
+
+// ── News ──────────────────────────────────────────────────────
+const COUNTRY_FLAG = {
+  USD:'🇺🇸', EUR:'🇪🇺', GBP:'🇬🇧', JPY:'🇯🇵', AUD:'🇦🇺',
+  CAD:'🇨🇦', CHF:'🇨🇭', NZD:'🇳🇿', CNY:'🇨🇳', ALL:'🌐',
+};
+const DAY_NAMES_CS = ['Neděle','Pondělí','Úterý','Středa','Čtvrtek','Pátek','Sobota'];
+
+let newsCache = {};
+let newsWeekOffset = 0;
+
+function getWeekBounds(offset) {
+  const now2 = new Date();
+  const day = now2.getDay(); // 0=Sun
+  const monday = new Date(now2);
+  monday.setDate(now2.getDate() - (day === 0 ? 6 : day - 1) + offset * 7);
+  monday.setHours(0,0,0,0);
+  const friday = new Date(monday);
+  friday.setDate(monday.getDate() + 4);
+  friday.setHours(23,59,59,999);
+  return { monday, friday };
+}
+
+async function fetchNewsForWeek(offset) {
+  if (newsCache[offset]) return newsCache[offset];
+  const { monday } = getWeekBounds(offset);
+  // Use the week's Monday to build the correct FF JSON URL
+  // FF provides current week and next week feeds
+  let url;
+  if (offset === 0) url = 'https://nfs.faireconomy.media/ff_calendar_thisweek.json?version=cached';
+  else if (offset === 1) url = 'https://nfs.faireconomy.media/ff_calendar_nextweek.json?version=cached';
+  else {
+    // For past weeks or further future, try this week's data as fallback
+    url = offset < 0
+      ? 'https://nfs.faireconomy.media/ff_calendar_thisweek.json?version=cached'
+      : 'https://nfs.faireconomy.media/ff_calendar_nextweek.json?version=cached';
+  }
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    newsCache[offset] = data;
+    return data;
+  } catch(e) {
+    console.error('News fetch error:', e);
+    return null;
+  }
+}
+
+function impactDots(impact) {
+  const cls = (impact || '').toLowerCase();
+  return `<span class="impact-dot ${cls}"><span class="m1"></span><span class="m2"></span><span class="m3"></span></span>`;
+}
+
+function fmtNewsTime(dateStr) {
+  // dateStr from FF: "2025-06-09T12:30:00-04:00" or similar
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleTimeString('cs-CZ', { hour:'2-digit', minute:'2-digit' });
+  } catch { return ''; }
+}
+
+function renderNewsDay(dateObj, events) {
+  const todayStr = dk(new Date());
+  const dayStr = dk(dateObj);
+  const isToday = dayStr === todayStr;
+  const dayLabel = `${DAY_NAMES_CS[dateObj.getDay()]} ${dateObj.getDate()}. ${MONTHS[dateObj.getMonth()]}`;
+
+  let rows = '';
+  if (!events || events.length === 0) {
+    rows = `<tr><td class="news-td news-empty" colspan="7">Žádné události</td></tr>`;
+  } else {
+    // Sort by time
+    const sorted = [...events].sort((a,b) => new Date(a.date) - new Date(b.date));
+    for (const ev of sorted) {
+      const flag = COUNTRY_FLAG[ev.country] || '🌐';
+      const impact = (ev.impact || '').toLowerCase();
+      const time = fmtNewsTime(ev.date);
+      const actual = ev.actual ? `<span class="actual ${ev.actual && ev.forecast ? (parseFloat(ev.actual) >= parseFloat(ev.forecast) ? 'better':'worse') : ''}">${ev.actual}</span>` : '<span style="color:var(--muted)">—</span>';
+      rows += `<tr>
+        <td class="news-td time">${time}</td>
+        <td class="news-td flag">${flag}</td>
+        <td class="news-td currency">${ev.country || ''}</td>
+        <td class="news-td impact">${impactDots(ev.impact)}</td>
+        <td class="news-td title">${ev.title || ''}</td>
+        <td class="news-td val"><span style="color:var(--muted);font-size:11px">${ev.forecast || '—'}</span></td>
+        <td class="news-td val">${actual}</td>
+      </tr>`;
+    }
+  }
+
+  return `<div class="news-day-block">
+    <div class="news-day-header${isToday ? ' today' : ''}">${isToday ? '▸ ' : ''}${dayLabel}</div>
+    <table class="news-table">
+      <thead><tr>
+        <th class="news-td time" style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.06em">Čas</th>
+        <th class="news-td flag"></th>
+        <th class="news-td currency" style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.06em">Měna</th>
+        <th class="news-td impact"></th>
+        <th class="news-td title" style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.06em">Událost</th>
+        <th class="news-td val" style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.06em">Oček.</th>
+        <th class="news-td val" style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.06em">Skut.</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
+async function renderNews() {
+  const inner = document.getElementById('news-inner');
+  if (!inner) return;
+
+  inner.innerHTML = `<div class="news-loading"><div class="news-spinner"></div>Načítání novinek…</div>`;
+
+  const data = await fetchNewsForWeek(newsWeekOffset);
+
+  const { monday, friday } = getWeekBounds(newsWeekOffset);
+  const wFrom = `${monday.getDate()}. ${MONTHS[monday.getMonth()]}`;
+  const wTo   = `${friday.getDate()}. ${MONTHS[friday.getMonth()]} ${friday.getFullYear()}`;
+
+  // Group events by day (Mon–Fri)
+  const dayMap = {};
+  for (let i = 0; i < 5; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    dayMap[dk(d)] = { date: d, events: [] };
+  }
+
+  if (data && Array.isArray(data)) {
+    for (const ev of data) {
+      try {
+        const evDate = new Date(ev.date);
+        const evKey = dk(evDate);
+        if (dayMap[evKey]) dayMap[evKey].events.push(ev);
+      } catch {}
+    }
+  }
+
+  let html = `<div class="news-week-nav">
+    <button class="news-nav-btn" id="news-prev">← Předchozí</button>
+    <div class="news-week-label">${wFrom} – ${wTo}</div>
+    <button class="news-nav-btn" id="news-next">Další →</button>
+  </div>`;
+
+  for (const key of Object.keys(dayMap)) {
+    html += renderNewsDay(dayMap[key].date, dayMap[key].events);
+  }
+
+  if (!data) {
+    html += `<div class="news-empty" style="padding:32px;text-align:center;color:var(--muted)">Nepodařilo se načíst data. Zkuste to znovu.</div>`;
+  }
+
+  inner.innerHTML = html;
+
+  document.getElementById('news-prev').onclick = () => { newsWeekOffset--; renderNews(); };
+  document.getElementById('news-next').onclick = () => { newsWeekOffset++; renderNews(); };
+}
 
