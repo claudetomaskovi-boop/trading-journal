@@ -73,6 +73,32 @@
         <div class="day-names" id="day-names"></div>
         <div class="cal-grid" id="cal-grid"></div>
       </div>
+      <div class="anim-ctrl-wrap">
+        <button class="anim-ctrl-toggle" id="anim-ctrl-toggle">✦ Animace</button>
+      </div>
+      <div class="anim-ctrl-panel" id="anim-ctrl-panel">
+        <div class="anim-ctrl-group">
+          <div class="anim-ctrl-label">Rychlost</div>
+          <div class="anim-ctrl-row">
+            <input type="range" class="anim-speed-slider" id="anim-speed" min="2" max="40" step="1" value="10"/>
+            <span class="anim-speed-val" id="anim-speed-val">10s</span>
+          </div>
+        </div>
+        <div class="anim-ctrl-group">
+          <div class="anim-ctrl-label">Barva</div>
+          <div class="anim-ctrl-row" id="anim-colors"></div>
+        </div>
+        <div class="anim-ctrl-group">
+          <div class="anim-ctrl-label">Počet jisker</div>
+          <div class="anim-ctrl-row" id="anim-counts"></div>
+        </div>
+        <div class="anim-ctrl-group">
+          <div class="anim-ctrl-label">Zapnout</div>
+          <div class="anim-ctrl-row">
+            <button class="anim-toggle-btn active" id="anim-onoff">Zap</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Stats view -->

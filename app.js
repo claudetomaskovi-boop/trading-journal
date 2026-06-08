@@ -186,6 +186,7 @@ async function initApp() {
   await loadData();
   render();
   requestAnimationFrame(setSquareCells);
+  setTimeout(initAnimControls, 50);
 }
 
 if (checkLogin()) initApp();
@@ -1270,4 +1271,109 @@ document.querySelectorAll('#currency-opts .settings-opt').forEach(b => {
   };
 });
 
+// ── Calendar border animation controls ───────────────────────
+const ANIM_COLORS = [
+  { name:'Modrá',   main:'#2563eb', hi:'#93c5fd' },
+  { name:'Fialová', main:'#7c3aed', hi:'#c4b5fd' },
+  { name:'Zelená',  main:'#16a34a', hi:'#86efac' },
+  { name:'Růžová',  main:'#db2777', hi:'#f9a8d4' },
+  { name:'Zlatá',   main:'#d97706', hi:'#fde68a' },
+  { name:'Bílá',    main:'#e2e8f0', hi:'#ffffff' },
+];
+const ANIM_KEY = 'tj_anim_v1';
+let animSettings = { speed: 10, colorIdx: 0, sparks: 2, on: true,
+  ...JSON.parse(localStorage.getItem(ANIM_KEY) || '{}') };
+
+function saveAnimSettings() { localStorage.setItem(ANIM_KEY, JSON.stringify(animSettings)); }
+
+function buildSparkGrad(colorIdx, sparks) {
+  const { main, hi } = ANIM_COLORS[colorIdx] || ANIM_COLORS[0];
+  const gap = 100 / sparks;
+  // Each spark: fade in, peak, fade out — width ~18%
+  const stops = [];
+  for (let i = 0; i < sparks; i++) {
+    const center = (i * gap) % 100;
+    const s = (v) => ((center + v + 100) % 100).toFixed(2) + '%';
+    stops.push(
+      `transparent ${s(-11)}`,
+      `${main} ${s(-4)}`,
+      `${hi} ${s(0)}`,
+      `${main} ${s(4)}`,
+      `transparent ${s(9)}`
+    );
+  }
+  return `conic-gradient(from var(--angle), ${stops.join(',')})`;
+}
+
+function applyAnimSettings() {
+  const ci = document.querySelector('.cal-inner');
+  if (!ci) return;
+  if (!animSettings.on) {
+    ci.style.setProperty('--cal-border-grad', 'none');
+    return;
+  }
+  ci.style.setProperty('--cal-anim-dur', animSettings.speed + 's');
+  ci.style.setProperty('--cal-border-grad', buildSparkGrad(animSettings.colorIdx, animSettings.sparks));
+}
+
+function initAnimControls() {
+  // Speed slider
+  const slider = document.getElementById('anim-speed');
+  const valEl  = document.getElementById('anim-speed-val');
+  if (!slider) return;
+  slider.value = animSettings.speed;
+  valEl.textContent = animSettings.speed + 's';
+  slider.oninput = () => {
+    animSettings.speed = +slider.value;
+    valEl.textContent = animSettings.speed + 's';
+    saveAnimSettings(); applyAnimSettings();
+  };
+
+  // Colors
+  const colWrap = document.getElementById('anim-colors');
+  ANIM_COLORS.forEach((c, i) => {
+    const sw = document.createElement('div');
+    sw.className = 'anim-color-swatch' + (i === animSettings.colorIdx ? ' active' : '');
+    sw.style.background = `linear-gradient(135deg, ${c.main}, ${c.hi})`;
+    sw.title = c.name;
+    sw.onclick = () => {
+      animSettings.colorIdx = i;
+      colWrap.querySelectorAll('.anim-color-swatch').forEach((s,j) => s.classList.toggle('active', j===i));
+      saveAnimSettings(); applyAnimSettings();
+    };
+    colWrap.appendChild(sw);
+  });
+
+  // Spark counts
+  const cntWrap = document.getElementById('anim-counts');
+  [1,2,3,4].forEach(n => {
+    const btn = document.createElement('button');
+    btn.className = 'anim-count-btn' + (n === animSettings.sparks ? ' active' : '');
+    btn.textContent = n;
+    btn.onclick = () => {
+      animSettings.sparks = n;
+      cntWrap.querySelectorAll('.anim-count-btn').forEach(b => b.classList.toggle('active', +b.textContent===n));
+      saveAnimSettings(); applyAnimSettings();
+    };
+    cntWrap.appendChild(btn);
+  });
+
+  // On/off
+  const onoff = document.getElementById('anim-onoff');
+  onoff.textContent = animSettings.on ? 'Zap' : 'Vyp';
+  onoff.classList.toggle('active', animSettings.on);
+  onoff.onclick = () => {
+    animSettings.on = !animSettings.on;
+    onoff.textContent = animSettings.on ? 'Zap' : 'Vyp';
+    onoff.classList.toggle('active', animSettings.on);
+    saveAnimSettings(); applyAnimSettings();
+  };
+
+  // Toggle panel
+  document.getElementById('anim-ctrl-toggle').onclick = () => {
+    document.getElementById('anim-ctrl-panel').classList.toggle('open');
+  };
+
+  applyAnimSettings();
+}
 
