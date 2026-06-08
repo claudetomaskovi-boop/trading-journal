@@ -1305,14 +1305,14 @@ function buildSparkGrad(colorIdx, sparks) {
 }
 
 function applyAnimSettings() {
-  const ci = document.querySelector('.cal-inner');
-  if (!ci) return;
+  let st = document.getElementById('cal-anim-style');
+  if (!st) { st = document.createElement('style'); st.id = 'cal-anim-style'; document.head.appendChild(st); }
   if (!animSettings.on) {
-    ci.style.setProperty('--cal-border-grad', 'none');
+    st.textContent = '.cal-inner::before { display:none !important; }';
     return;
   }
-  ci.style.setProperty('--cal-anim-dur', animSettings.speed + 's');
-  ci.style.setProperty('--cal-border-grad', buildSparkGrad(animSettings.colorIdx, animSettings.sparks));
+  const grad = buildSparkGrad(animSettings.colorIdx, animSettings.sparks);
+  st.textContent = `.cal-inner::before { background: ${grad} !important; animation-duration: ${animSettings.speed}s !important; }`;
 }
 
 function initAnimControls() {
