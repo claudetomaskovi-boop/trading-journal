@@ -1278,14 +1278,14 @@ const COUNTRY_FLAG = {
   USD:'🇺🇸', EUR:'🇪🇺', GBP:'🇬🇧', JPY:'🇯🇵', AUD:'🇦🇺',
   CAD:'🇨🇦', CHF:'🇨🇭', NZD:'🇳🇿', CNY:'🇨🇳', ALL:'🌐',
 };
-const DAY_NAMES_CS = ['Neděle','Pondělí','Úterý','Středa','Čtvrtek','Pátek','Sobota'];
+const NEWS_DAY_NAMES = ['Pondělí','Úterý','Středa','Čtvrtek','Pátek'];
 
 let newsCache = {};
 let newsWeekOffset = 0;
 
 function getWeekBounds(offset) {
   const now2 = new Date();
-  const day = now2.getDay(); // 0=Sun
+  const day = now2.getDay();
   const monday = new Date(now2);
   monday.setDate(now2.getDate() - (day === 0 ? 6 : day - 1) + offset * 7);
   monday.setHours(0,0,0,0);
@@ -1297,18 +1297,9 @@ function getWeekBounds(offset) {
 
 async function fetchNewsForWeek(offset) {
   if (newsCache[offset]) return newsCache[offset];
-  const { monday } = getWeekBounds(offset);
-  // Use the week's Monday to build the correct FF JSON URL
-  // FF provides current week and next week feeds
-  let url;
-  if (offset === 0) url = 'https://nfs.faireconomy.media/ff_calendar_thisweek.json?version=cached';
-  else if (offset === 1) url = 'https://nfs.faireconomy.media/ff_calendar_nextweek.json?version=cached';
-  else {
-    // For past weeks or further future, try this week's data as fallback
-    url = offset < 0
-      ? 'https://nfs.faireconomy.media/ff_calendar_thisweek.json?version=cached'
-      : 'https://nfs.faireconomy.media/ff_calendar_nextweek.json?version=cached';
-  }
+  const url = offset <= 0
+    ? 'https://nfs.faireconomy.media/ff_calendar_thisweek.json?version=cached'
+    : 'https://nfs.faireconomy.media/ff_calendar_nextweek.json?version=cached';
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -1321,62 +1312,39 @@ async function fetchNewsForWeek(offset) {
   }
 }
 
-function impactDots(impact) {
-  const cls = (impact || '').toLowerCase();
-  return `<span class="impact-dot ${cls}"><span class="m1"></span><span class="m2"></span><span class="m3"></span></span>`;
-}
-
 function fmtNewsTime(dateStr) {
-  // dateStr from FF: "2025-06-09T12:30:00-04:00" or similar
   try {
     const d = new Date(dateStr);
     return d.toLocaleTimeString('cs-CZ', { hour:'2-digit', minute:'2-digit' });
   } catch { return ''; }
 }
 
-function renderNewsDay(dateObj, events) {
+function renderNewsCell(dateObj, events) {
   const todayStr = dk(new Date());
-  const dayStr = dk(dateObj);
-  const isToday = dayStr === todayStr;
-  const dayLabel = `${DAY_NAMES_CS[dateObj.getDay()]} ${dateObj.getDate()}. ${MONTHS[dateObj.getMonth()]}`;
+  const isToday = dk(dateObj) === todayStr;
+  const dateLabel = `${dateObj.getDate()}. ${MONTHS[dateObj.getMonth()]}`;
 
-  let rows = '';
-  if (!events || events.length === 0) {
-    rows = `<tr><td class="news-td news-empty" colspan="7">Žádné události</td></tr>`;
-  } else {
-    // Sort by time
-    const sorted = [...events].sort((a,b) => new Date(a.date) - new Date(b.date));
-    for (const ev of sorted) {
-      const flag = COUNTRY_FLAG[ev.country] || '🌐';
-      const impact = (ev.impact || '').toLowerCase();
-      const time = fmtNewsTime(ev.date);
-      const actual = ev.actual ? `<span class="actual ${ev.actual && ev.forecast ? (parseFloat(ev.actual) >= parseFloat(ev.forecast) ? 'better':'worse') : ''}">${ev.actual}</span>` : '<span style="color:var(--muted)">—</span>';
-      rows += `<tr>
-        <td class="news-td time">${time}</td>
-        <td class="news-td flag">${flag}</td>
-        <td class="news-td currency">${ev.country || ''}</td>
-        <td class="news-td impact">${impactDots(ev.impact)}</td>
-        <td class="news-td title">${ev.title || ''}</td>
-        <td class="news-td val"><span style="color:var(--muted);font-size:11px">${ev.forecast || '—'}</span></td>
-        <td class="news-td val">${actual}</td>
-      </tr>`;
-    }
+  const sorted = [...(events || [])].sort((a,b) => new Date(a.date) - new Date(b.date));
+
+  let evHtml = '';
+  for (const ev of sorted) {
+    const flag = COUNTRY_FLAG[ev.country] || '🌐';
+    const impact = (ev.impact || '').toLowerCase();
+    const time = fmtNewsTime(ev.date);
+    evHtml += `<div class="news-event ${impact}">
+      <div class="news-event-flag">${flag}</div>
+      <div class="news-event-body">
+        <div class="news-event-time">${time} <span class="news-event-cur">${ev.country || ''}</span></div>
+        <div class="news-event-title">${ev.title || ''}</div>
+      </div>
+    </div>`;
   }
 
-  return `<div class="news-day-block">
-    <div class="news-day-header${isToday ? ' today' : ''}">${isToday ? '▸ ' : ''}${dayLabel}</div>
-    <table class="news-table">
-      <thead><tr>
-        <th class="news-td time" style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.06em">Čas</th>
-        <th class="news-td flag"></th>
-        <th class="news-td currency" style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.06em">Měna</th>
-        <th class="news-td impact"></th>
-        <th class="news-td title" style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.06em">Událost</th>
-        <th class="news-td val" style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.06em">Oček.</th>
-        <th class="news-td val" style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.06em">Skut.</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
+  if (!evHtml) evHtml = `<div style="font-size:10px;color:var(--muted);padding:4px 2px">Žádné události</div>`;
+
+  return `<div class="news-cell${isToday ? ' today' : ''}">
+    <div class="news-cell-date">${dateLabel}</div>
+    ${evHtml}
   </div>`;
 }
 
@@ -1392,41 +1360,48 @@ async function renderNews() {
   const wFrom = `${monday.getDate()}. ${MONTHS[monday.getMonth()]}`;
   const wTo   = `${friday.getDate()}. ${MONTHS[friday.getMonth()]} ${friday.getFullYear()}`;
 
-  // Group events by day (Mon–Fri)
+  // Build Mon–Fri map
+  const dayKeys = [];
   const dayMap = {};
   for (let i = 0; i < 5; i++) {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
-    dayMap[dk(d)] = { date: d, events: [] };
+    const key = dk(d);
+    dayKeys.push(key);
+    dayMap[key] = { date: d, events: [] };
   }
 
   if (data && Array.isArray(data)) {
     for (const ev of data) {
       try {
-        const evDate = new Date(ev.date);
-        const evKey = dk(evDate);
+        const evKey = dk(new Date(ev.date));
         if (dayMap[evKey]) dayMap[evKey].events.push(ev);
       } catch {}
     }
   }
 
-  let html = `<div class="news-week-nav">
-    <button class="news-nav-btn" id="news-prev">← Předchozí</button>
-    <div class="news-week-label">${wFrom} – ${wTo}</div>
-    <button class="news-nav-btn" id="news-next">Další →</button>
-  </div>`;
+  // Day name headers
+  const dayNamesHtml = NEWS_DAY_NAMES.map(n =>
+    `<div class="news-day-name">${n}</div>`
+  ).join('');
 
-  for (const key of Object.keys(dayMap)) {
-    html += renderNewsDay(dayMap[key].date, dayMap[key].events);
-  }
+  // Grid cells
+  const cellsHtml = dayKeys.map(k =>
+    renderNewsCell(dayMap[k].date, dayMap[k].events)
+  ).join('');
 
-  if (!data) {
-    html += `<div class="news-empty" style="padding:32px;text-align:center;color:var(--muted)">Nepodařilo se načíst data. Zkuste to znovu.</div>`;
-  }
+  inner.innerHTML = `
+    <div class="news-week-nav">
+      <button class="news-nav-btn" id="news-prev">← Předchozí</button>
+      <div class="news-week-label">${wFrom} – ${wTo}</div>
+      <button class="news-nav-btn" id="news-next">Další →</button>
+    </div>
+    <div class="news-day-names">${dayNamesHtml}</div>
+    <div class="news-grid">${cellsHtml}</div>
+    ${!data ? '<div style="text-align:center;color:var(--muted);font-size:12px;padding:16px">Nepodařilo se načíst data.</div>' : ''}
+  `;
 
-  inner.innerHTML = html;
-
-  document.getElementById('news-prev').onclick = () => { newsWeekOffset--; renderNews(); };
-  document.getElementById('news-next').onclick = () => { newsWeekOffset++; renderNews(); };
+  document.getElementById('news-prev').onclick = () => { newsWeekOffset--; newsCache = {}; renderNews(); };
+  document.getElementById('news-next').onclick = () => { newsWeekOffset++; newsCache = {}; renderNews(); };
 }
 
