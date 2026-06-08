@@ -33,7 +33,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 @property --angle{syntax:'<angle>';initial-value:0deg;inherits:false;}
 @keyframes spin-border{to{--angle:360deg;}}
 .login-box{background:var(--bg2);border-radius:var(--r2);padding:36px 32px;width:320px;display:flex;flex-direction:column;gap:12px;position:relative;z-index:0;}
-.login-box::before{content:'';position:absolute;inset:-2px;border-radius:calc(var(--r2) + 2px);background:conic-gradient(from var(--angle),transparent 0%,transparent 65%,#2563eb 80%,#93c5fd 90%,#2563eb 95%,transparent 100%);z-index:-1;animation:spin-border 5s linear infinite;}
+.login-box::before{content:'';position:absolute;inset:-2px;border-radius:calc(var(--r2) + 2px);background:conic-gradient(from var(--angle),transparent 0%,transparent 65%,#2563eb 80%,#93c5fd 90%,#2563eb 95%,transparent 100%);z-index:-1;animation:spin-border 10s linear infinite;}
 .login-box::after{content:'';position:absolute;inset:1px;border-radius:var(--r2);background:var(--bg2);z-index:-1;}
 .login-title{font-size:20px;font-weight:700;color:var(--text);text-align:center}
 .login-sub{font-size:12px;color:var(--muted);text-align:center;margin-bottom:4px}
@@ -100,7 +100,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
   box-shadow:0 4px 6px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.08), 0 20px 48px rgba(0,0,0,.06);
   position:relative;z-index:0;
 }
-.cal-inner::before{content:'';position:absolute;inset:-2px;border-radius:14px;background:conic-gradient(from var(--angle),transparent 0%,transparent 30%,#2563eb 42%,#93c5fd 47%,#2563eb 52%,transparent 60%,transparent 80%,#2563eb 92%,#93c5fd 97%,#2563eb 100%);z-index:-1;animation:spin-border 5s linear infinite;}
+.cal-inner::before{content:'';position:absolute;inset:-2px;border-radius:14px;background:conic-gradient(from var(--angle),transparent 0%,transparent 30%,#2563eb 42%,#93c5fd 47%,#2563eb 52%,transparent 60%,transparent 80%,#2563eb 92%,#93c5fd 97%,#2563eb 100%);z-index:-1;animation:spin-border 10s linear infinite;}
 .cal-inner::after{content:'';position:absolute;inset:1px;border-radius:11px;background:var(--bg3);z-index:-1;}
 .day-names{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
 .day-name{
