@@ -1289,20 +1289,19 @@ function saveAnimSettings() { localStorage.setItem(ANIM_KEY, JSON.stringify(anim
 function buildSparkGrad(colorIdx, sparks) {
   const { main, hi } = ANIM_COLORS[colorIdx] || ANIM_COLORS[0];
   const gap = 100 / sparks;
-  // Each spark: fade in, peak, fade out — width ~18%
+  const w = Math.min(9, gap * 0.28);
   const stops = [];
   for (let i = 0; i < sparks; i++) {
-    const center = (i * gap) % 100;
-    const s = (v) => ((center + v + 100) % 100).toFixed(2) + '%';
+    const c = gap * i + gap / 2;
     stops.push(
-      `transparent ${s(-11)}`,
-      `${main} ${s(-4)}`,
-      `${hi} ${s(0)}`,
-      `${main} ${s(4)}`,
-      `transparent ${s(9)}`
+      `transparent ${Math.max(0, c - w - 2).toFixed(1)}%`,
+      `${main} ${(c - w * 0.4).toFixed(1)}%`,
+      `${hi} ${c.toFixed(1)}%`,
+      `${main} ${(c + w * 0.4).toFixed(1)}%`,
+      `transparent ${Math.min(100, c + w + 2).toFixed(1)}%`
     );
   }
-  return `conic-gradient(from var(--angle), ${stops.join(',')})`;
+  return `conic-gradient(from var(--angle), transparent 0%, ${stops.join(', ')}, transparent 100%)`;
 }
 
 function applyAnimSettings() {
