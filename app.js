@@ -605,14 +605,18 @@ function openModal(key, date) {
         const isSel = selectedTF === tf && !hasImg;
         btn.className = 'tf-btn' + (hasImg ? ' has-img' : '') + (isSel ? ' tf-btn-sel' : '');
         btn.innerHTML = `<span>${tf}</span><span class="tf-dot-ind"></span>`;
-        // Single click → select TF (for Ctrl+V paste)
+        let clickTimer = null;
         btn.onclick = () => {
           if (hasImg) { document.getElementById(`wrap-${tf}`)?.scrollIntoView({behavior:'smooth',block:'nearest'}); return; }
-          selectedTF = selectedTF === tf ? null : tf;
-          renderTFButtons();
+          if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; return; } // double click handled below
+          clickTimer = setTimeout(() => {
+            clickTimer = null;
+            selectedTF = selectedTF === tf ? null : tf;
+            renderTFButtons();
+          }, 220);
         };
-        // Double click → open file picker
         btn.ondblclick = () => {
+          if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }
           if (hasImg) return;
           selectedTF = tf;
           renderTFButtons();
