@@ -218,6 +218,7 @@ async function initApp() {
   render();
   requestAnimationFrame(setSquareCells);
   setTimeout(initAnimControls, 50);
+  initUserBtn();
 }
 
 if (checkLogin()) initApp();
@@ -1301,6 +1302,54 @@ document.querySelectorAll('#currency-opts .settings-opt').forEach(b => {
     });
   };
 });
+
+// ── User button ───────────────────────────────────────────────
+function initUserBtn() {
+  const btn      = document.getElementById('user-btn');
+  const dropdown = document.getElementById('user-dd-logout') ? document.getElementById('user-btn').parentElement.querySelector('.user-dropdown') : null;
+  if (!btn) return;
+
+  const initials = currentUser ? currentUser.slice(0,2).toUpperCase() : '?';
+  btn.textContent = initials;
+
+  const dd = document.getElementById('user-dropdown');
+  document.getElementById('user-dd-avatar').textContent = initials;
+  document.getElementById('user-dd-name').textContent = currentUser;
+
+  // Session start time
+  const sessionStart = sessionStorage.getItem('tj_session_start') || Date.now();
+  sessionStorage.setItem('tj_session_start', sessionStart);
+  const sinceDate = new Date(parseInt(sessionStart));
+  document.getElementById('user-dd-since').textContent =
+    sinceDate.toLocaleTimeString('cs-CZ', { hour:'2-digit', minute:'2-digit' });
+
+  function updateUserStats() {
+    const all = getAllTrades();
+    const total = all.length;
+    const wins  = all.filter(t => t.result === 'win').length;
+    const bes   = all.filter(t => t.result === 'be').length;
+    const wr    = total > 0 ? Math.round((wins + bes) / total * 100) + '%' : '—';
+    document.getElementById('user-dd-trades').textContent = total || '—';
+    document.getElementById('user-dd-wr').textContent = wr;
+  }
+
+  btn.onclick = (e) => {
+    e.stopPropagation();
+    updateUserStats();
+    dd.classList.toggle('open');
+  };
+
+  document.addEventListener('click', (e) => {
+    if (!dd.contains(e.target) && e.target !== btn) dd.classList.remove('open');
+  });
+
+  document.getElementById('user-dd-logout').onclick = () => {
+    sessionStorage.removeItem('tj_auth');
+    sessionStorage.removeItem('tj_user');
+    sessionStorage.removeItem('tj_session_start');
+    location.reload();
+  };
+}
 
 // ── Calendar border animation controls ───────────────────────
 const ANIM_COLORS = [
