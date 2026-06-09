@@ -605,16 +605,22 @@ function openModal(key, date) {
         const isSel = selectedTF === tf && !hasImg;
         btn.className = 'tf-btn' + (hasImg ? ' has-img' : '') + (isSel ? ' tf-btn-sel' : '');
         btn.innerHTML = `<span>${tf}</span><span class="tf-dot-ind"></span>`;
+        // Single click → select TF (for Ctrl+V paste)
         btn.onclick = () => {
           if (hasImg) { document.getElementById(`wrap-${tf}`)?.scrollIntoView({behavior:'smooth',block:'nearest'}); return; }
           selectedTF = selectedTF === tf ? null : tf;
           renderTFButtons();
-          if (selectedTF !== tf) return;
+        };
+        // Double click → open file picker
+        btn.ondblclick = () => {
+          if (hasImg) return;
+          selectedTF = tf;
+          renderTFButtons();
           const input = document.createElement('input');
           input.type = 'file'; input.accept = 'image/*';
           input.onchange = async () => {
             const file = input.files[0]; if (!file) return;
-            btn.disabled = true; btn.querySelector('span').textContent = '↑';
+            btn.disabled = true;
             try {
               const url = await uploadScreenshot(file, key, tf);
               if (!tr.screenshots) tr.screenshots = {};
