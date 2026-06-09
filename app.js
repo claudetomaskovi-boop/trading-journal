@@ -306,9 +306,6 @@ function renderSidebar() {
       <div class="stat-label">P&L</div>
       <div class="stat-val ${monthPnl >= 0 ? 'green' : 'red'}">${fmtPnl(monthPnl)}</div>
     </div>` : ''}
-    <div style="margin-top:auto;padding-top:10px;">
-      <button onclick="doLogout()" style="width:100%;padding:6px 0;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s" onmouseover="this.style.borderColor='var(--border2)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">Odhlásit se</button>
-    </div>
   `;
   document.getElementById('sb-win')?.addEventListener('click',  () => openTradesList('win',  'month', null, null));
   document.getElementById('sb-loss')?.addEventListener('click', () => openTradesList('loss', 'month', null, null));
@@ -1350,8 +1347,6 @@ function initUserBtn() {
     location.reload();
   }
   document.getElementById('user-dd-logout').onclick = doLogout;
-  const sidebarLogout = document.getElementById('sidebar-logout');
-  if (sidebarLogout) sidebarLogout.onclick = doLogout;
 }
 
 // ── Calendar border animation controls ───────────────────────
