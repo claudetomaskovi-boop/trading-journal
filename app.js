@@ -539,9 +539,17 @@ function openModal(key, date) {
     const tfMain = document.createElement('div');
     tfMain.className = 'tf-main';
 
+    // Normalize screenshots to always be arrays
+    function tfUrls(tf) {
+      const s = tr.screenshots?.[tf];
+      if (!s) return [];
+      return Array.isArray(s) ? s : [s];
+    }
+    function tfHasAny(tf) { return tfUrls(tf).length > 0; }
+
     function renderTFMain() {
       tfMain.innerHTML = '';
-      const uploaded = TFS.filter(tf => tr.screenshots?.[tf]);
+      const uploaded = TFS.filter(tf => tfHasAny(tf));
       if (uploaded.length === 0) {
         tfMain.innerHTML = `<div class="tf-main-empty"><div class="tf-main-empty-icon"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="tf-main-empty-txt">Klikni na timeframe nebo vlož Ctrl+V</div></div>`;
         return;
@@ -550,27 +558,75 @@ function openModal(key, date) {
       area.className = 'tf-cards-area';
       uploaded.forEach(tf => {
         const note = tr.notes?.[tf] || '';
+        const urls = tfUrls(tf);
         const card = document.createElement('div');
         card.className = 'tf-card';
+
+        // Build images HTML
+        const imgsHtml = urls.map((url, i) => `
+          <div class="tf-img-wrap tf-img-wrap-multi" data-tf="${tf}" data-idx="${i}">
+            <img src="${url}" alt="${tf}"/>
+            <button class="tf-img-del" data-tf="${tf}" data-idx="${i}">✕</button>
+          </div>`).join('');
+
         card.innerHTML = `
           <div class="tf-card-head">
             <div class="tf-label">${tf}</div>
-            <button class="tf-del-btn" data-tf="${tf}">✕</button>
+            <button class="tf-add-btn" data-tf="${tf}" title="Přidat screenshot">+</button>
+            <button class="tf-del-btn" data-tf="${tf}">✕ vše</button>
           </div>
-          <div class="tf-img-wrap" id="wrap-${tf}">
-            <img src="${tr.screenshots[tf]}" alt="${tf}"/>
-          </div>
+          <div class="tf-imgs-row" id="imgs-${tf}">${imgsHtml}</div>
           <textarea class="tf-note" id="note-${tf}" placeholder="Poznámky k ${tf}...">${note}</textarea>
         `;
         area.appendChild(card);
-        card.querySelector(`#wrap-${tf}`).onclick = () => openLightbox(tr.screenshots[tf], tf, tr);
+
+        // Click image → lightbox
+        card.querySelectorAll('.tf-img-wrap-multi').forEach(wrap => {
+          wrap.onclick = (e) => {
+            if (e.target.classList.contains('tf-img-del')) return;
+            const idx = +wrap.dataset.idx;
+            openLightbox(tfUrls(tf)[idx], tf, tr);
+          };
+        });
+
+        // Delete single image
+        card.querySelectorAll('.tf-img-del').forEach(btn2 => {
+          btn2.onclick = (e) => {
+            e.stopPropagation();
+            const idx = +btn2.dataset.idx;
+            const urls2 = tfUrls(tf);
+            deleteScreenshot(urls2[idx]);
+            urls2.splice(idx, 1);
+            tr.screenshots[tf] = urls2.length > 0 ? urls2 : undefined;
+            if (!urls2.length) delete tr.screenshots[tf];
+            renderTFButtons(); renderTFMain();
+          };
+        });
+
+        // Delete all
         card.querySelector('.tf-del-btn').onclick = (e) => {
           e.stopPropagation();
-          const url = tr.screenshots[tf];
+          tfUrls(tf).forEach(u => deleteScreenshot(u));
           delete tr.screenshots[tf];
-          deleteScreenshot(url);
-          renderTFButtons();
-          renderTFMain();
+          renderTFButtons(); renderTFMain();
+        };
+
+        // Add more button
+        card.querySelector('.tf-add-btn').onclick = (e) => {
+          e.stopPropagation();
+          const input = document.createElement('input');
+          input.type = 'file'; input.accept = 'image/*';
+          input.onchange = async () => {
+            const file = input.files[0]; if (!file) return;
+            try {
+              const url = await uploadScreenshot(file, key, tf);
+              if (!tr.screenshots) tr.screenshots = {};
+              const existing = tfUrls(tf);
+              tr.screenshots[tf] = [...existing, url];
+              renderTFButtons(); renderTFMain();
+            } catch(err) { console.error(err); showToast('Nahrávání selhalo'); }
+          };
+          input.click();
         };
       });
       tfMain.appendChild(area);
@@ -585,7 +641,8 @@ function openModal(key, date) {
       try {
         const url = await uploadScreenshot(file, key, tf);
         if (!tr.screenshots) tr.screenshots = {};
-        tr.screenshots[tf] = url;
+        const existing = tfUrls(tf);
+        tr.screenshots[tf] = [...existing, url];
         renderTFButtons();
         renderTFMain();
         showToast(`Screenshot nahrán → ${tf}`);
@@ -599,7 +656,7 @@ function openModal(key, date) {
     function renderTFButtons() {
       tfSidebar.innerHTML = `<div class="tf-sidebar-title">Timeframy</div>`;
       TFS.forEach(tf => {
-        const hasImg = !!tr.screenshots?.[tf];
+        const hasImg = tfHasAny(tf);
         const btn = document.createElement('button');
         btn.dataset.tf = tf;
         const isSel = selectedTF === tf && !hasImg;
@@ -651,8 +708,8 @@ function openModal(key, date) {
         const blob = item.getAsFile();
         if (!blob) continue;
         let target = selectedTF;
-        if (!target) target = TFS.find(tf => !tr.screenshots?.[tf]);
-        if (!target) { showToast('Všechny TF mají screenshot'); return; }
+        if (!target) target = TFS.find(tf => !tfHasAny(tf));
+        if (!target) target = selectedTF || TFS[0]; // allow adding more to existing
         e.preventDefault();
         uploadImageBlob(blob, target);
         return;

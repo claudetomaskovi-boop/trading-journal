@@ -275,12 +275,17 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 
 .tf-cards-area{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;align-content:start;}
 .tf-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;display:flex;flex-direction:column;}
-.tf-card-head{display:flex;align-items:center;justify-content:space-between;padding:5px 9px;border-bottom:1px solid var(--border);}
-.tf-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);}
-.tf-del-btn{width:18px;height:18px;border-radius:3px;background:rgba(220,38,38,.85);border:none;color:#fff;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.tf-card-head{display:flex;align-items:center;gap:6px;padding:5px 9px;border-bottom:1px solid var(--border);}
+.tf-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);flex:1;}
+.tf-add-btn{height:18px;padding:0 7px;border-radius:3px;background:var(--accent);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;line-height:1;transition:opacity .15s;}
+.tf-add-btn:hover{opacity:.8;}
+.tf-del-btn{height:18px;padding:0 6px;border-radius:3px;background:rgba(220,38,38,.85);border:none;color:#fff;font-size:9px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.tf-imgs-row{display:flex;flex-direction:column;}
 .tf-img-wrap{position:relative;overflow:hidden;background:var(--bg3);cursor:pointer;transition:background .15s;height:210px;}
 .tf-img-wrap:hover{background:var(--bg4)}
 .tf-img-wrap img{width:100%;height:100%;object-fit:contain;display:block}
+.tf-img-del{position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;background:rgba(220,38,38,.85);border:none;color:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;}
+.tf-img-wrap:hover .tf-img-del{opacity:1;}
 .tf-note{border:none;background:transparent;border-top:1px solid var(--border);color:var(--text);font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;padding:7px 9px;resize:none;min-height:42px;outline:none;width:100%;}
 .tf-note::placeholder{color:var(--muted2)}
 .tf-note:focus{background:var(--bg3)}
