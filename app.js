@@ -1343,12 +1343,15 @@ function initUserBtn() {
     if (!dd.contains(e.target) && e.target !== btn) dd.classList.remove('open');
   });
 
-  document.getElementById('user-dd-logout').onclick = () => {
+  function doLogout() {
     sessionStorage.removeItem('tj_auth');
     sessionStorage.removeItem('tj_user');
     sessionStorage.removeItem('tj_session_start');
     location.reload();
-  };
+  }
+  document.getElementById('user-dd-logout').onclick = doLogout;
+  const sidebarLogout = document.getElementById('sidebar-logout');
+  if (sidebarLogout) sidebarLogout.onclick = doLogout;
 }
 
 // ── Calendar border animation controls ───────────────────────
