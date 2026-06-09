@@ -4,6 +4,8 @@
 // Přidat dalšího uživatele: { username: 'jmeno', password: 'heslo' }
 const USERS = [
   { username: 'jenda', password: '1234' },
+  { username: 'erik',  password: '1234' },
+  { username: 'adam',  password: '1234' },
 ];
 
 let currentUser = sessionStorage.getItem('tj_user') || '';
