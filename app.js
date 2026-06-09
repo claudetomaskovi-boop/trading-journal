@@ -561,6 +561,8 @@ function openModal(key, date) {
         const urls = tfUrls(tf);
 
         urls.forEach((url, i) => {
+          const noteKey = i === 0 ? tf : `${tf}_${i}`;
+          const cardNote = tr.notes?.[noteKey] || '';
           const card = document.createElement('div');
           card.className = 'tf-card';
           const label = urls.length > 1 ? `${tf} <span style="opacity:.5;font-weight:400">#${i+1}</span>` : tf;
@@ -572,7 +574,7 @@ function openModal(key, date) {
             <div class="tf-img-wrap" id="wrap-${tf}-${i}">
               <img src="${url}" alt="${tf}"/>
             </div>
-            ${i === 0 ? `<textarea class="tf-note" id="note-${tf}" placeholder="Poznámky k ${tf}...">${note}</textarea>` : ''}
+            <textarea class="tf-note" id="note-${noteKey}" placeholder="Poznámky k ${tf}...">${cardNote}</textarea>
           `;
           area.appendChild(card);
 
@@ -718,8 +720,13 @@ function openModal(key, date) {
       const rrVal = document.getElementById('rr-inp')?.value;
       const notes = {};
       TFS.forEach(tf => {
-        const v = document.getElementById(`note-${tf}`)?.value || '';
-        if (v) notes[tf] = v;
+        const urls2 = tfUrls(tf);
+        const count = Math.max(1, urls2.length);
+        for (let i = 0; i < count; i++) {
+          const noteKey = i === 0 ? tf : `${tf}_${i}`;
+          const v = document.getElementById(`note-${noteKey}`)?.value || '';
+          if (v) notes[noteKey] = v;
+        }
       });
       const pnlVal = document.getElementById('pnl-inp')?.value;
       tr.result = selResult;
