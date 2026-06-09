@@ -572,8 +572,6 @@ function openModal(key, date) {
         card.innerHTML = `
           <div class="tf-card-head">
             <div class="tf-label">${tf}</div>
-            <button class="tf-add-btn" data-tf="${tf}" title="Přidat screenshot">+</button>
-            <button class="tf-del-btn" data-tf="${tf}">✕ vše</button>
           </div>
           <div class="tf-imgs-row" id="imgs-${tf}">${imgsHtml}</div>
           <textarea class="tf-note" id="note-${tf}" placeholder="Poznámky k ${tf}...">${note}</textarea>
@@ -603,31 +601,6 @@ function openModal(key, date) {
           };
         });
 
-        // Delete all
-        card.querySelector('.tf-del-btn').onclick = (e) => {
-          e.stopPropagation();
-          tfUrls(tf).forEach(u => deleteScreenshot(u));
-          delete tr.screenshots[tf];
-          renderTFButtons(); renderTFMain();
-        };
-
-        // Add more button
-        card.querySelector('.tf-add-btn').onclick = (e) => {
-          e.stopPropagation();
-          const input = document.createElement('input');
-          input.type = 'file'; input.accept = 'image/*';
-          input.onchange = async () => {
-            const file = input.files[0]; if (!file) return;
-            try {
-              const url = await uploadScreenshot(file, key, tf);
-              if (!tr.screenshots) tr.screenshots = {};
-              const existing = tfUrls(tf);
-              tr.screenshots[tf] = [...existing, url];
-              renderTFButtons(); renderTFMain();
-            } catch(err) { console.error(err); showToast('Nahrávání selhalo'); }
-          };
-          input.click();
-        };
       });
       tfMain.appendChild(area);
     }
@@ -664,20 +637,18 @@ function openModal(key, date) {
         btn.innerHTML = `<span>${tf}</span><span class="tf-dot-ind"></span>`;
         let clickTimer = null;
         btn.onclick = () => {
-          if (hasImg) { document.getElementById(`wrap-${tf}`)?.scrollIntoView({behavior:'smooth',block:'nearest'}); return; }
           if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; return; }
           clickTimer = setTimeout(() => {
             clickTimer = null;
             const wasSelected = selectedTF === tf;
             selectedTF = wasSelected ? null : tf;
-            // Smooth toggle without full re-render
             tfSidebar.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('tf-btn-sel'));
             if (!wasSelected) btn.classList.add('tf-btn-sel');
+            if (!wasSelected && hasImg) document.getElementById(`imgs-${tf}`)?.scrollIntoView({behavior:'smooth',block:'nearest'});
           }, 220);
         };
         btn.ondblclick = () => {
           if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }
-          if (hasImg) return;
           selectedTF = tf;
           renderTFButtons();
           const input = document.createElement('input');
@@ -688,7 +659,7 @@ function openModal(key, date) {
             try {
               const url = await uploadScreenshot(file, key, tf);
               if (!tr.screenshots) tr.screenshots = {};
-              tr.screenshots[tf] = url;
+              tr.screenshots[tf] = [...tfUrls(tf), url];
               selectedTF = null;
               renderTFButtons(); renderTFMain();
             } catch(e) { console.error(e); showToast('Nahrávání selhalo'); }
