@@ -1309,7 +1309,7 @@ function initUserBtn() {
   const dropdown = document.getElementById('user-dd-logout') ? document.getElementById('user-btn').parentElement.querySelector('.user-dropdown') : null;
   if (!btn) return;
 
-  const initials = currentUser ? currentUser.slice(0,2).toUpperCase() : '?';
+  const initials = currentUser ? currentUser.slice(0,1).toUpperCase() : '?';
   btn.textContent = initials;
 
   const dd = document.getElementById('user-dropdown');
