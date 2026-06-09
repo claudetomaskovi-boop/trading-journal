@@ -646,6 +646,7 @@ function openModal(key, date) {
         };
         btn.ondblclick = () => {
           if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }
+          if (!selectedInstrument) { showToast('Nejprve vyberte index (NQ / ES)'); return; }
           selectedTF = tf;
           renderTFButtons();
           const input = document.createElement('input');
@@ -694,6 +695,7 @@ function openModal(key, date) {
         let target = selectedTF;
         if (!target) target = TFS.find(tf => !tfHasAny(tf));
         if (!target) target = selectedTF || TFS[0]; // allow adding more to existing
+        if (!selectedInstrument) { showToast('Nejprve vyberte index (NQ / ES)'); return; }
         e.preventDefault();
         uploadImageBlob(blob, target);
         return;
