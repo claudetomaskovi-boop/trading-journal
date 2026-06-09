@@ -66,22 +66,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 .body{display:flex;flex:1;overflow:hidden;position:relative}
 
 /* ── Sidebar ── */
-.sidebar-wrap{width:158px;flex-shrink:0;display:flex;flex-direction:column;border-right:1px solid var(--border);background:var(--bg2);}
 .sidebar{
-  flex:1;
-  background:var(--bg2);
+  width:158px;flex-shrink:0;
+  background:var(--bg2);border-right:1px solid var(--border);
   padding:14px 12px;display:flex;flex-direction:column;gap:5px;
   overflow-y:auto;justify-content:flex-start;
 }
-.sidebar-logout{
-  margin:8px 10px 10px;padding:7px;
-  border-radius:var(--r);border:1px solid var(--border);
-  background:var(--bg3);color:var(--muted);
-  font-size:11px;font-weight:500;cursor:pointer;
-  font-family:'Plus Jakarta Sans',sans-serif;
-  transition:all .15s;
-}
-.sidebar-logout:hover{background:#ef4444;color:#fff;border-color:#ef4444;}
 .sidebar-title{
   font-size:10px;font-weight:600;text-transform:uppercase;
   letter-spacing:.1em;color:var(--muted2);margin-bottom:4px;
