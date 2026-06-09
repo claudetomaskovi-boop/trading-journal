@@ -99,6 +99,16 @@ let displayMode = 'both';
 // ── Supabase data layer ───────────────────────────────────────
 async function loadData() {
   const prefix = currentUser + '_';
+
+  // Migrate old keys (no user prefix) → new keys with user prefix
+  const { data: oldData } = await sb.from('trades').select('key, trade_list').like('key', '____-__-__');
+  if (oldData && oldData.length > 0) {
+    const toInsert = oldData.map(r => ({ key: prefix + r.key, trade_list: r.trade_list }));
+    const oldKeys  = oldData.map(r => r.key);
+    await sb.from('trades').upsert(toInsert, { onConflict: 'key' });
+    for (const k of oldKeys) await sb.from('trades').delete().eq('key', k);
+  }
+
   const { data, error } = await sb.from('trades').select('key, trade_list').like('key', prefix + '%');
   if (error) { console.error('Load error:', error); return; }
   trades = {};
