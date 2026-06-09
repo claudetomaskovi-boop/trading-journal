@@ -623,8 +623,29 @@ function openModal(key, date) {
     }
 
     function renderTFButtons() {
-      tfSidebar.innerHTML = `<div class="tf-sidebar-title">Timeframy</div>`;
-      // Render TF buttons first, instrument selector appended after
+      tfSidebar.innerHTML = '';
+      // Instrument selector first
+      const instWrap = document.createElement('div');
+      instWrap.className = 'tf-inst-wrap';
+      instWrap.innerHTML = `<div class="tf-sidebar-title">Index</div>`;
+      ['NQ','ES'].forEach(inst => {
+        const ib = document.createElement('button');
+        ib.className = 'tf-inst-btn' + (selectedInstrument === inst ? ' active' : '');
+        ib.textContent = inst;
+        ib.onclick = () => {
+          selectedInstrument = selectedInstrument === inst ? null : inst;
+          renderTFButtons();
+        };
+        instWrap.appendChild(ib);
+      });
+      tfSidebar.appendChild(instWrap);
+
+      // TF buttons below
+      const tfTitle = document.createElement('div');
+      tfTitle.className = 'tf-sidebar-title';
+      tfTitle.style.marginTop = '10px';
+      tfTitle.textContent = 'Timeframy';
+      tfSidebar.appendChild(tfTitle);
       TFS.forEach(tf => {
         const hasImg = tfHasAny(tf);
         const btn = document.createElement('button');
@@ -668,21 +689,6 @@ function openModal(key, date) {
         tfSidebar.appendChild(btn);
       });
 
-      // Instrument selector
-      const instWrap = document.createElement('div');
-      instWrap.className = 'tf-inst-wrap';
-      instWrap.innerHTML = `<div class="tf-sidebar-title" style="margin-top:10px">Index</div>`;
-      ['NQ','ES'].forEach(inst => {
-        const ib = document.createElement('button');
-        ib.className = 'tf-inst-btn' + (selectedInstrument === inst ? ' active' : '');
-        ib.textContent = inst;
-        ib.onclick = () => {
-          selectedInstrument = selectedInstrument === inst ? null : inst;
-          renderTFButtons();
-        };
-        instWrap.appendChild(ib);
-      });
-      tfSidebar.appendChild(instWrap);
     }
 
     function onModalPaste(e) {
