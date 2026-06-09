@@ -288,6 +288,15 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 .tf-note{border:none;background:transparent;border-top:1px solid var(--border);color:var(--text);font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;padding:7px 9px;resize:none;min-height:42px;outline:none;width:100%;}
 .tf-note::placeholder{color:var(--muted2)}
 .tf-note:focus{background:var(--bg3)}
+/* Instrument selector */
+.tf-inst-wrap{display:flex;flex-direction:column;gap:5px;margin-top:4px;}
+.tf-inst-btn{width:100%;padding:6px 0;border-radius:7px;border:1.5px solid var(--border);background:transparent;color:var(--muted2);font-size:12px;font-weight:600;cursor:pointer;transition:background .2s,border-color .2s,color .2s;letter-spacing:.5px;}
+.tf-inst-btn:hover{background:var(--bg4);color:var(--text);}
+.tf-inst-btn.active{background:rgba(37,99,235,.15);border-color:#2563eb;color:#60a5fa;}
+/* Instrument badge on card */
+.tf-inst-badge{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.5px;vertical-align:middle;}
+.tf-inst-badge-nq{background:rgba(234,179,8,.15);color:#eab308;border:1px solid rgba(234,179,8,.35);}
+.tf-inst-badge-es{background:rgba(37,99,235,.15);color:#60a5fa;border:1px solid rgba(37,99,235,.35);}
 
 /* Mistake tags */
 .mistake-wrap{display:flex;flex-direction:column;gap:6px}

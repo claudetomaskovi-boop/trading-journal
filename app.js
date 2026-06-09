@@ -540,12 +540,15 @@ function openModal(key, date) {
     tfMain.className = 'tf-main';
 
     // Normalize screenshots to always be arrays
-    function tfUrls(tf) {
+    // Each screenshot stored as {url, instrument} or legacy string
+    function tfItems(tf) {
       const s = tr.screenshots?.[tf];
       if (!s) return [];
-      return Array.isArray(s) ? s : [s];
+      const arr = Array.isArray(s) ? s : [s];
+      return arr.map(item => typeof item === 'string' ? { url: item, instrument: null } : item);
     }
-    function tfHasAny(tf) { return tfUrls(tf).length > 0; }
+    function tfUrls(tf) { return tfItems(tf).map(x => x.url); }
+    function tfHasAny(tf) { return tfItems(tf).length > 0; }
 
     function renderTFMain() {
       tfMain.innerHTML = '';
@@ -560,15 +563,18 @@ function openModal(key, date) {
         const note = tr.notes?.[tf] || '';
         const urls = tfUrls(tf);
 
-        urls.forEach((url, i) => {
+        const items2 = tfItems(tf);
+        items2.forEach((item, i) => {
+          const { url, instrument } = item;
           const noteKey = i === 0 ? tf : `${tf}_${i}`;
           const cardNote = tr.notes?.[noteKey] || '';
           const card = document.createElement('div');
           card.className = 'tf-card';
-          const label = urls.length > 1 ? `${tf} <span style="opacity:.5;font-weight:400">#${i+1}</span>` : tf;
+          const tfLabel = items2.length > 1 ? `${tf} <span style="opacity:.5;font-weight:400">#${i+1}</span>` : tf;
+          const instBadge = instrument ? `<span class="tf-inst-badge tf-inst-badge-${instrument.toLowerCase()}">${instrument}</span>` : '';
           card.innerHTML = `
             <div class="tf-card-head">
-              <div class="tf-label">${label}</div>
+              <div class="tf-label">${tfLabel}${instBadge}</div>
               <button class="tf-img-del">✕</button>
             </div>
             <div class="tf-img-wrap" id="wrap-${tf}-${i}">
@@ -582,10 +588,10 @@ function openModal(key, date) {
 
           card.querySelector('.tf-img-del').onclick = (e) => {
             e.stopPropagation();
-            const urls2 = tfUrls(tf);
-            deleteScreenshot(urls2[i]);
-            urls2.splice(i, 1);
-            if (urls2.length > 0) tr.screenshots[tf] = urls2;
+            const items3 = tfItems(tf);
+            deleteScreenshot(items3[i].url);
+            items3.splice(i, 1);
+            if (items3.length > 0) tr.screenshots[tf] = items3;
             else delete tr.screenshots[tf];
             renderTFButtons(); renderTFMain();
           };
@@ -595,6 +601,7 @@ function openModal(key, date) {
     }
 
     let selectedTF = null;
+    let selectedInstrument = null;
 
     async function uploadImageBlob(blob, tf) {
       const file = new File([blob], `paste_${Date.now()}.png`, { type: blob.type || 'image/png' });
@@ -603,8 +610,8 @@ function openModal(key, date) {
       try {
         const url = await uploadScreenshot(file, key, tf);
         if (!tr.screenshots) tr.screenshots = {};
-        const existing = tfUrls(tf);
-        tr.screenshots[tf] = [...existing, url];
+        const existing = tfItems(tf);
+        tr.screenshots[tf] = [...existing, { url, instrument: selectedInstrument }];
         renderTFButtons();
         renderTFMain();
         showToast(`Screenshot nahrán → ${tf}`);
@@ -617,6 +624,7 @@ function openModal(key, date) {
 
     function renderTFButtons() {
       tfSidebar.innerHTML = `<div class="tf-sidebar-title">Timeframy</div>`;
+      // Render TF buttons first, instrument selector appended after
       TFS.forEach(tf => {
         const hasImg = tfHasAny(tf);
         const btn = document.createElement('button');
@@ -648,7 +656,7 @@ function openModal(key, date) {
             try {
               const url = await uploadScreenshot(file, key, tf);
               if (!tr.screenshots) tr.screenshots = {};
-              tr.screenshots[tf] = [...tfUrls(tf), url];
+              tr.screenshots[tf] = [...tfItems(tf), { url, instrument: selectedInstrument }];
               selectedTF = null;
               renderTFButtons(); renderTFMain();
             } catch(e) { console.error(e); showToast('Nahrávání selhalo'); }
@@ -658,6 +666,22 @@ function openModal(key, date) {
         };
         tfSidebar.appendChild(btn);
       });
+
+      // Instrument selector
+      const instWrap = document.createElement('div');
+      instWrap.className = 'tf-inst-wrap';
+      instWrap.innerHTML = `<div class="tf-sidebar-title" style="margin-top:10px">Index</div>`;
+      ['NQ','ES'].forEach(inst => {
+        const ib = document.createElement('button');
+        ib.className = 'tf-inst-btn' + (selectedInstrument === inst ? ' active' : '');
+        ib.textContent = inst;
+        ib.onclick = () => {
+          selectedInstrument = selectedInstrument === inst ? null : inst;
+          renderTFButtons();
+        };
+        instWrap.appendChild(ib);
+      });
+      tfSidebar.appendChild(instWrap);
     }
 
     function onModalPaste(e) {
