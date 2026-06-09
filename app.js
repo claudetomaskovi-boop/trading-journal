@@ -608,11 +608,14 @@ function openModal(key, date) {
         let clickTimer = null;
         btn.onclick = () => {
           if (hasImg) { document.getElementById(`wrap-${tf}`)?.scrollIntoView({behavior:'smooth',block:'nearest'}); return; }
-          if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; return; } // double click handled below
+          if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; return; }
           clickTimer = setTimeout(() => {
             clickTimer = null;
-            selectedTF = selectedTF === tf ? null : tf;
-            renderTFButtons();
+            const wasSelected = selectedTF === tf;
+            selectedTF = wasSelected ? null : tf;
+            // Smooth toggle without full re-render
+            tfSidebar.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('tf-btn-sel'));
+            if (!wasSelected) btn.classList.add('tf-btn-sel');
           }, 220);
         };
         btn.ondblclick = () => {
