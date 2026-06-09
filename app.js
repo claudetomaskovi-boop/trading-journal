@@ -114,8 +114,9 @@ async function saveDayData(key, dayData) {
 }
 
 async function uploadScreenshot(file, dateKey, tf) {
-  const ext = file.name.split('.').pop() || 'jpg';
-  const path = `${dateKey}/${tf}_${Date.now()}.${ext}`;
+  const ext = (file.name || 'image').split('.').pop() || 'jpg';
+  const rawDate = dkRaw(dateKey);
+  const path = `${currentUser}/${rawDate}/${tf}_${Date.now()}.${ext}`;
   const { error } = await sb.storage.from('screenshots').upload(path, file, { upsert: true, contentType: file.type });
   if (error) throw error;
   const { data } = sb.storage.from('screenshots').getPublicUrl(path);
