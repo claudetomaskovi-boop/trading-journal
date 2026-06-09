@@ -559,48 +559,35 @@ function openModal(key, date) {
       uploaded.forEach(tf => {
         const note = tr.notes?.[tf] || '';
         const urls = tfUrls(tf);
-        const card = document.createElement('div');
-        card.className = 'tf-card';
 
-        // Build images HTML
-        const imgsHtml = urls.map((url, i) => `
-          <div class="tf-img-wrap tf-img-wrap-multi" data-tf="${tf}" data-idx="${i}">
-            <img src="${url}" alt="${tf}"/>
-            <button class="tf-img-del" data-tf="${tf}" data-idx="${i}">✕</button>
-          </div>`).join('');
+        urls.forEach((url, i) => {
+          const card = document.createElement('div');
+          card.className = 'tf-card';
+          const label = urls.length > 1 ? `${tf} <span style="opacity:.5;font-weight:400">#${i+1}</span>` : tf;
+          card.innerHTML = `
+            <div class="tf-card-head">
+              <div class="tf-label">${label}</div>
+              <button class="tf-img-del">✕</button>
+            </div>
+            <div class="tf-img-wrap" id="wrap-${tf}-${i}">
+              <img src="${url}" alt="${tf}"/>
+            </div>
+            ${i === 0 ? `<textarea class="tf-note" id="note-${tf}" placeholder="Poznámky k ${tf}...">${note}</textarea>` : ''}
+          `;
+          area.appendChild(card);
 
-        card.innerHTML = `
-          <div class="tf-card-head">
-            <div class="tf-label">${tf}</div>
-          </div>
-          <div class="tf-imgs-row" id="imgs-${tf}">${imgsHtml}</div>
-          <textarea class="tf-note" id="note-${tf}" placeholder="Poznámky k ${tf}...">${note}</textarea>
-        `;
-        area.appendChild(card);
+          card.querySelector('.tf-img-wrap').onclick = () => openLightbox(url, tf, tr);
 
-        // Click image → lightbox
-        card.querySelectorAll('.tf-img-wrap-multi').forEach(wrap => {
-          wrap.onclick = (e) => {
-            if (e.target.classList.contains('tf-img-del')) return;
-            const idx = +wrap.dataset.idx;
-            openLightbox(tfUrls(tf)[idx], tf, tr);
-          };
-        });
-
-        // Delete single image
-        card.querySelectorAll('.tf-img-del').forEach(btn2 => {
-          btn2.onclick = (e) => {
+          card.querySelector('.tf-img-del').onclick = (e) => {
             e.stopPropagation();
-            const idx = +btn2.dataset.idx;
             const urls2 = tfUrls(tf);
-            deleteScreenshot(urls2[idx]);
-            urls2.splice(idx, 1);
-            tr.screenshots[tf] = urls2.length > 0 ? urls2 : undefined;
-            if (!urls2.length) delete tr.screenshots[tf];
+            deleteScreenshot(urls2[i]);
+            urls2.splice(i, 1);
+            if (urls2.length > 0) tr.screenshots[tf] = urls2;
+            else delete tr.screenshots[tf];
             renderTFButtons(); renderTFMain();
           };
         });
-
       });
       tfMain.appendChild(area);
     }

@@ -284,8 +284,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 .tf-img-wrap{position:relative;overflow:hidden;background:var(--bg3);cursor:pointer;transition:background .15s;height:210px;}
 .tf-img-wrap:hover{background:var(--bg4)}
 .tf-img-wrap img{width:100%;height:100%;object-fit:contain;display:block}
-.tf-img-del{position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;background:rgba(220,38,38,.85);border:none;color:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;}
-.tf-img-wrap:hover .tf-img-del{opacity:1;}
+.tf-img-del{width:18px;height:18px;border-radius:3px;background:rgba(220,38,38,.85);border:none;color:#fff;font-size:9px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:opacity .15s;}
 .tf-note{border:none;background:transparent;border-top:1px solid var(--border);color:var(--text);font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;padding:7px 9px;resize:none;min-height:42px;outline:none;width:100%;}
 .tf-note::placeholder{color:var(--muted2)}
 .tf-note:focus{background:var(--bg3)}
