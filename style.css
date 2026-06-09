@@ -256,7 +256,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 .rr-inp:focus{border-color:var(--accent)}
 
 /* TF split layout */
-.tf-split{display:flex;gap:10px;min-height:260px}
+.tf-split{display:flex;gap:10px;min-height:260px;flex-shrink:0;}
 
 .tf-sidebar{width:72px;flex-shrink:0;display:flex;flex-direction:column;gap:4px;}
 .tf-sidebar-title{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted2);margin-bottom:2px;padding-left:2px;}
@@ -295,7 +295,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 .tf-inst-btn.active{background:rgba(37,99,235,.15);border-color:#2563eb;color:#60a5fa;}
 /* Instrument badge on card */
 .tf-inst-badge{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.5px;vertical-align:middle;}
-.tf-inst-badge-nq{background:rgba(234,179,8,.15);color:#eab308;border:1px solid rgba(234,179,8,.35);}
+.tf-inst-badge-nq{background:rgba(37,99,235,.15);color:#60a5fa;border:1px solid rgba(37,99,235,.35);}
 .tf-inst-badge-es{background:rgba(220,38,38,.15);color:#f87171;border:1px solid rgba(220,38,38,.35);}
 
 /* Mistake tags */
