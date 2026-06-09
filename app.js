@@ -1,10 +1,15 @@
 'use strict';
 
 // ── Login ─────────────────────────────────────────────────────
-const CREDENTIALS = { username: 'jenda', password: '1234' };
+// Přidat dalšího uživatele: { username: 'jmeno', password: 'heslo' }
+const USERS = [
+  { username: 'jenda', password: '1234' },
+];
+
+let currentUser = sessionStorage.getItem('tj_user') || '';
 
 function checkLogin() {
-  return sessionStorage.getItem('tj_auth') === '1';
+  return sessionStorage.getItem('tj_auth') === '1' && !!currentUser;
 }
 
 document.getElementById('login-btn').onclick = doLogin;
@@ -12,10 +17,13 @@ document.getElementById('login-pass').addEventListener('keydown', e => { if (e.k
 document.getElementById('login-user').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('login-pass').focus(); });
 
 function doLogin() {
-  const user = document.getElementById('login-user').value.trim();
+  const user = document.getElementById('login-user').value.trim().toLowerCase();
   const pass = document.getElementById('login-pass').value;
-  if (user === CREDENTIALS.username && pass === CREDENTIALS.password) {
+  const found = USERS.find(u => u.username.toLowerCase() === user && u.password === pass);
+  if (found) {
+    currentUser = found.username;
     sessionStorage.setItem('tj_auth', '1');
+    sessionStorage.setItem('tj_user', currentUser);
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('shell').style.display = '';
     initApp();
@@ -88,7 +96,8 @@ let displayMode = 'both';
 
 // ── Supabase data layer ───────────────────────────────────────
 async function loadData() {
-  const { data, error } = await sb.from('trades').select('key, trade_list');
+  const prefix = currentUser + '_';
+  const { data, error } = await sb.from('trades').select('key, trade_list').like('key', prefix + '%');
   if (error) { console.error('Load error:', error); return; }
   trades = {};
   (data || []).forEach(row => {
@@ -153,8 +162,17 @@ async function clearAllData() {
 }
 
 // ── Helpers ───────────────────────────────────────────────────
+// Full key with user prefix: "jenda_2025-06-09"
 function dk(d) {
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  return `${currentUser}_${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+// Strip user prefix → "2025-06-09"
+function dkRaw(key) {
+  return key.includes('_') ? key.split('_').slice(1).join('_') : key;
+}
+// Month prefix with user: "jenda_2025-06"
+function monthPrefix(y, m) {
+  return `${currentUser}_${y}-${String(m+1).padStart(2,'0')}`;
 }
 
 // ── Init ──────────────────────────────────────────────────────
@@ -232,7 +250,7 @@ function renderSidebar() {
   const isCurrentMonth = viewYear === now.getFullYear() && viewMonth === now.getMonth();
   nextBtn.disabled = isCurrentMonth;
 
-  const prefix = `${viewYear}-${String(viewMonth+1).padStart(2,'0')}`;
+  const prefix = monthPrefix(viewYear, viewMonth);
   const s = computeStats(k => k.startsWith(prefix));
   let monthPnl = 0;
   Object.entries(trades).forEach(([k, _]) => {
@@ -718,14 +736,14 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeLight
 // ── Trades list ───────────────────────────────────────────────
 function openTradesList(type, tab, crFrom, crTo) {
   const labels = { win: 'Wins', loss: 'Losses', be: 'Break Even' };
-  const prefix = `${viewYear}-${String(viewMonth+1).padStart(2,'0')}`;
+  const prefix = monthPrefix(viewYear, viewMonth);
   let titleSuffix = '';
   let filterFn;
   if (tab === 'total') {
     titleSuffix = ' — All Time'; filterFn = () => true;
   } else if (tab === 'custom' && crFrom && crTo) {
     const fmt = s => s.split('-').reverse().join('.');
-    titleSuffix = ` — ${fmt(crFrom)}–${fmt(crTo)}`; filterFn = k => k >= crFrom && k <= crTo;
+    titleSuffix = ` — ${fmt(dkRaw(crFrom))}–${fmt(dkRaw(crTo))}`; filterFn = k => dkRaw(k) >= dkRaw(crFrom) && dkRaw(k) <= dkRaw(crTo);
   } else {
     titleSuffix = ` — ${MONTHS[viewMonth]}`; filterFn = k => k.startsWith(prefix);
   }
@@ -745,7 +763,7 @@ function openTradesList(type, tab, crFrom, crTo) {
   } else {
     list.innerHTML = items.map(([k]) => {
       const dd = normalizeDayData(k);
-      const d = new Date(k);
+      const d = new Date(dkRaw(k));
       const dateStr = `${d.getDate()}. ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
       const matching = (dd.tradeList || []).filter(t => t.result === type);
       const rrSum = matching.reduce((s, t) => {
@@ -763,7 +781,7 @@ function openTradesList(type, tab, crFrom, crTo) {
     list.querySelectorAll('.tl-item').forEach(el => {
       el.onclick = () => {
         const key = el.dataset.key;
-        const date = new Date(key);
+        const date = new Date(dkRaw(key));
         closeTL();
         openModal(key, date);
       };
@@ -948,12 +966,12 @@ function getAllTrades() {
 }
 
 function renderStats() {
-  const prefix = `${viewYear}-${String(viewMonth+1).padStart(2,'0')}`;
-  const nowPrefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const prefix = monthPrefix(viewYear, viewMonth);
+  const nowPrefix = monthPrefix(now.getFullYear(), now.getMonth());
   let filterFn;
   if (statsPeriod === 'month')  filterFn = t => t.key.startsWith(nowPrefix);
   else if (statsPeriod === 'custom' && customRangeFrom && customRangeTo)
-    filterFn = t => t.key >= customRangeFrom && t.key <= customRangeTo;
+    filterFn = t => dkRaw(t.key) >= customRangeFrom && dkRaw(t.key) <= customRangeTo;
   else filterFn = () => true;
 
   const all = getAllTrades().filter(filterFn);
@@ -977,7 +995,7 @@ function renderStats() {
 
   const byMonth = {};
   all.forEach(t => {
-    const m = t.key.slice(0, 7);
+    const m = dkRaw(t.key).slice(0, 7);
     if (!byMonth[m]) byMonth[m] = { wins: 0, losses: 0, bes: 0, rr: 0 };
     if (t.result === 'win')  byMonth[m].wins++;
     if (t.result === 'loss') byMonth[m].losses++;
@@ -1150,7 +1168,7 @@ function renderStats() {
   const monthPnlData = months.map(m => {
     let sum = 0;
     Object.entries(trades).forEach(([k, _]) => {
-      if (!k.startsWith(m)) return;
+      if (!dkRaw(k).startsWith(m)) return;
       normalizeDayData(k).tradeList.forEach(t => { sum += t.pnl ?? 0; });
     });
     return Math.round(sum);
