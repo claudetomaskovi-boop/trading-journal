@@ -745,6 +745,16 @@ function openModal(key, date) {
     `;
     body.appendChild(finalNotesWrap);
 
+    // Přehled button
+    const hasAnyScreenshot = TFS.some(t => tfItems(t).length > 0);
+    if (hasAnyScreenshot) {
+      const prehledBtn = document.createElement('button');
+      prehledBtn.className = 'prehled-btn';
+      prehledBtn.textContent = '⊞ Přehled';
+      prehledBtn.onclick = () => openOverview(tr);
+      body.appendChild(prehledBtn);
+    }
+
     const addBtn = document.createElement('button');
     addBtn.className = 'add-trade-btn';
     addBtn.textContent = '+ Přidat obchod';
@@ -845,6 +855,63 @@ function _lbShow() {
   document.getElementById('lb-counter').textContent = total > 1 ? `${_lbIdx + 1} / ${total}` : '';
 }
 
+// ── Overview ──────────────────────────────────────────────────
+function openOverview(tr) {
+  const ov = document.getElementById('overview-overlay');
+  const grid = document.getElementById('overview-grid');
+  grid.innerHTML = '';
+
+  TFS.forEach(tf => {
+    const items = (() => {
+      const s = tr.screenshots?.[tf];
+      if (!s) return [];
+      const arr = Array.isArray(s) ? s : [s];
+      return arr.map(x => typeof x === 'string' ? { url: x, instrument: null } : x);
+    })();
+    if (!items.length) return;
+
+    items.forEach((item, i) => {
+      const nk = i === 0 ? tf : `${tf}_${i}`;
+      const note = tr.notes?.[nk] || '';
+      const label = items.length > 1 ? `${tf} #${i+1}` : tf;
+      const inst = item.instrument;
+
+      const card = document.createElement('div');
+      card.className = 'ov-card';
+      card.innerHTML = `
+        <div class="ov-card-head">
+          <span class="ov-label">${label}</span>
+          ${inst ? `<span class="tf-inst-badge tf-inst-badge-${inst.toLowerCase()}">${inst}</span>` : ''}
+        </div>
+        <img class="ov-img" src="${item.url}" alt="${label}"/>
+        ${note ? `<div class="ov-note">${note}</div>` : ''}
+      `;
+      card.querySelector('.ov-img').onclick = () => {
+        closeLightbox();
+        // Build slides from tr
+        const slides = [];
+        TFS.forEach(t => {
+          const its = (() => { const s2 = tr.screenshots?.[t]; if (!s2) return []; const a = Array.isArray(s2)?s2:[s2]; return a.map(x=>typeof x==='string'?{url:x,instrument:null}:x); })();
+          its.forEach((it, ii) => { const nk2 = ii===0?t:`${t}_${ii}`; slides.push({src:it.url,label:its.length>1?`${t} #${ii+1}`:t,note:tr.notes?.[nk2]||''}); });
+        });
+        openLightbox(item.url, slides);
+      };
+      grid.appendChild(card);
+    });
+  });
+
+  ov.classList.add('open');
+}
+
+function closeOverview() {
+  document.getElementById('overview-overlay').classList.remove('open');
+}
+
+document.getElementById('overview-close').onclick = closeOverview;
+document.getElementById('overview-overlay').onclick = (e) => {
+  if (e.target === document.getElementById('overview-overlay')) closeOverview();
+};
+
 function closeLightbox() {
   document.getElementById('lightbox').classList.remove('open');
 }
@@ -860,7 +927,7 @@ document.addEventListener('keydown', e => {
     if (e.key === 'ArrowRight') { if (_lbIdx < _lbSlides.length - 1) { _lbIdx++; _lbShow(); } return; }
     if (e.key === 'ArrowLeft') { if (_lbIdx > 0) { _lbIdx--; _lbShow(); } return; }
   }
-  if (e.key === 'Escape') { closeLightbox(); closeModal(); closeTL(); }
+  if (e.key === 'Escape') { closeLightbox(); closeOverview(); closeModal(); closeTL(); }
 });
 
 // ── Trades list ───────────────────────────────────────────────

@@ -410,6 +410,25 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 .lb-next{right:16px;}
 .lb-counter{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.6);font-size:13px;font-weight:500;z-index:401;pointer-events:none;}
 
+/* ── Overview overlay ── */
+.overview-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:none;align-items:center;justify-content:center;}
+.overview-overlay.open{display:flex;}
+.overview-panel{background:var(--bg);border:1px solid var(--border);border-radius:12px;width:92vw;max-width:1200px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+.overview-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.overview-title{font-size:14px;font-weight:600;color:var(--text);}
+.overview-close{width:28px;height:28px;border-radius:6px;border:none;background:transparent;color:var(--muted2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.overview-close:hover{background:var(--bg3);color:var(--text);}
+.overview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;padding:16px;overflow-y:auto;}
+.ov-card{background:var(--bg2);border:1px solid var(--border);border-radius:9px;overflow:hidden;display:flex;flex-direction:column;}
+.ov-card-head{display:flex;align-items:center;gap:6px;padding:8px 10px 6px;flex-shrink:0;}
+.ov-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted2);}
+.ov-img{width:100%;aspect-ratio:16/9;object-fit:cover;cursor:pointer;transition:opacity .15s;}
+.ov-img:hover{opacity:.85;}
+.ov-note{font-size:11px;color:var(--muted2);padding:6px 10px 8px;border-top:1px solid var(--border);line-height:1.5;white-space:pre-wrap;}
+/* Přehled button */
+.prehled-btn{align-self:flex-start;padding:7px 14px;border-radius:7px;border:1.5px solid var(--border);background:transparent;color:var(--muted2);font-size:12px;font-weight:600;cursor:pointer;transition:background .15s,color .15s,border-color .15s;}
+.prehled-btn:hover{background:var(--bg3);color:var(--text);border-color:var(--text);}
+
 /* ── Trades list overlay ── */
 .tl-overlay{
   position:fixed;inset:0;background:rgba(0,0,0,.3);
