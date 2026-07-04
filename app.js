@@ -750,7 +750,7 @@ function openModal(key, date) {
     if (hasAnyScreenshot) {
       const prehledBtn = document.createElement('button');
       prehledBtn.className = 'prehled-btn';
-      prehledBtn.textContent = '⊞ Přehled';
+      prehledBtn.textContent = 'Přehled';
       prehledBtn.onclick = () => openOverview(tr);
       body.appendChild(prehledBtn);
     }
