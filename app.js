@@ -584,7 +584,7 @@ function openModal(key, date) {
           `;
           area.appendChild(card);
 
-          card.querySelector('.tf-img-wrap').onclick = () => openLightbox(url, tf, tr);
+          card.querySelector('.tf-img-wrap').onclick = () => openLightbox(url, tf, tr, noteKey);
 
           card.querySelector('.tf-img-del').onclick = (e) => {
             e.stopPropagation();
@@ -786,8 +786,8 @@ function closeModal() {
 }
 
 // ── Lightbox ──────────────────────────────────────────────────
-function openLightbox(src, tf, tr) {
-  const note = tr?.notes?.[tf] || '';
+function openLightbox(src, tf, tr, noteKey) {
+  const note = tr?.notes?.[noteKey ?? tf] || '';
   document.getElementById('lightbox-img').src = src;
   document.getElementById('lightbox-label').textContent = tf;
   const notesEl = document.getElementById('lightbox-notes');
