@@ -806,19 +806,35 @@ function closeModal() {
 }
 
 // ── Lightbox ──────────────────────────────────────────────────
+let _lbSlides = []; // [{src, label, note}]
+let _lbIdx = 0;
+
 function openLightbox(src, tf, tr, noteKey) {
-  const note = tr?.notes?.[noteKey ?? tf] || '';
-  document.getElementById('lightbox-img').src = src;
-  document.getElementById('lightbox-label').textContent = tf;
-  const notesEl = document.getElementById('lightbox-notes');
-  if (note) {
-    notesEl.textContent = note;
-    notesEl.classList.remove('empty');
-  } else {
-    notesEl.textContent = 'No notes for this timeframe.';
-    notesEl.classList.add('empty');
-  }
+  // Build full slide list from all TFs in this trade
+  _lbSlides = [];
+  TFS.forEach(t => {
+    tfItems(t).forEach((item, i) => {
+      const nk = i === 0 ? t : `${t}_${i}`;
+      _lbSlides.push({ src: item.url, label: t + (tfItems(t).length > 1 ? ` #${i+1}` : ''), note: tr?.notes?.[nk] || '' });
+    });
+  });
+  _lbIdx = _lbSlides.findIndex(s => s.src === src);
+  if (_lbIdx < 0) _lbIdx = 0;
+  _lbShow();
   document.getElementById('lightbox').classList.add('open');
+}
+
+function _lbShow() {
+  const s = _lbSlides[_lbIdx];
+  document.getElementById('lightbox-img').src = s.src;
+  document.getElementById('lightbox-label').textContent = s.label;
+  const notesEl = document.getElementById('lightbox-notes');
+  if (s.note) { notesEl.textContent = s.note; notesEl.classList.remove('empty'); }
+  else { notesEl.textContent = 'No notes for this timeframe.'; notesEl.classList.add('empty'); }
+  const total = _lbSlides.length;
+  document.getElementById('lb-prev').style.display = total > 1 ? '' : 'none';
+  document.getElementById('lb-next').style.display = total > 1 ? '' : 'none';
+  document.getElementById('lb-counter').textContent = total > 1 ? `${_lbIdx + 1} / ${total}` : '';
 }
 
 function closeLightbox() {
@@ -826,10 +842,18 @@ function closeLightbox() {
 }
 
 document.getElementById('lightbox-close').onclick = closeLightbox;
+document.getElementById('lb-prev').onclick = (e) => { e.stopPropagation(); _lbIdx = (_lbIdx - 1 + _lbSlides.length) % _lbSlides.length; _lbShow(); };
+document.getElementById('lb-next').onclick = (e) => { e.stopPropagation(); _lbIdx = (_lbIdx + 1) % _lbSlides.length; _lbShow(); };
 document.getElementById('lightbox').onclick = (e) => {
   if (e.target === document.getElementById('lightbox')) closeLightbox();
 };
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeLightbox(); closeModal(); closeTL(); } });
+document.addEventListener('keydown', e => {
+  if (document.getElementById('lightbox').classList.contains('open')) {
+    if (e.key === 'ArrowRight') { _lbIdx = (_lbIdx + 1) % _lbSlides.length; _lbShow(); return; }
+    if (e.key === 'ArrowLeft') { _lbIdx = (_lbIdx - 1 + _lbSlides.length) % _lbSlides.length; _lbShow(); return; }
+  }
+  if (e.key === 'Escape') { closeLightbox(); closeModal(); closeTL(); }
+});
 
 // ── Trades list ───────────────────────────────────────────────
 function openTradesList(type, tab, crFrom, crTo) {
