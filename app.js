@@ -898,11 +898,11 @@ function openOverview(tr) {
     const PAD = 28;
     const avail = cw - PAD * 2;
 
-    const WIDTHS = [Math.round(avail * 0.38), Math.round(avail * 0.26), Math.round(avail * 0.32)];
-    const XNORMS = [0, 0.48, 0.06, 0.42, 0.65, 0.18, 0.52, 0.28, 0.72, 0.08];
+    const WIDTHS = [Math.round(avail * 0.32), Math.round(avail * 0.24), Math.round(avail * 0.28)];
+    const XNORMS = [0.04, 0.44, 0.64, 0.12, 0.50, 0.22, 0.60, 0.08, 0.40, 0.68];
     const HEAD_H = 30;
     const NOTE_H = 38;
-    const V_STEP = 0.58;
+    const V_STEP = 1.0;
 
     const positions = [];
     let y = PAD;
@@ -913,7 +913,7 @@ function openOverview(tr) {
       const imgH = Math.round(w * 9 / 16);
       const h = HEAD_H + imgH + (card.note ? NOTE_H : 0);
       positions.push({ x, y, w, h, imgH });
-      y += Math.round(h * V_STEP) + 16;
+      y += Math.round(h * V_STEP) + 24;
     });
 
     const totalH = y + Math.round((positions[positions.length - 1]?.h || 0) * (1 - V_STEP)) + PAD;
