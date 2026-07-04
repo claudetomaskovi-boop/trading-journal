@@ -745,15 +745,6 @@ function openModal(key, date) {
     `;
     body.appendChild(finalNotesWrap);
 
-    // Přehled button
-    const hasAnyScreenshot = TFS.some(t => tfItems(t).length > 0);
-    if (hasAnyScreenshot) {
-      const prehledBtn = document.createElement('button');
-      prehledBtn.className = 'prehled-btn';
-      prehledBtn.textContent = 'Přehled';
-      prehledBtn.onclick = () => openOverview(tr);
-      body.appendChild(prehledBtn);
-    }
 
     const addBtn = document.createElement('button');
     addBtn.className = 'add-trade-btn';
@@ -855,116 +846,7 @@ function _lbShow() {
   document.getElementById('lb-counter').textContent = total > 1 ? `${_lbIdx + 1} / ${total}` : '';
 }
 
-// ── Overview ──────────────────────────────────────────────────
-function _ovItems(tr, tf) {
-  const s = tr.screenshots?.[tf];
-  if (!s) return [];
-  const arr = Array.isArray(s) ? s : [s];
-  return arr.map(x => typeof x === 'string' ? { url: x, instrument: null } : x);
-}
 
-function openOverview(tr) {
-  const ov = document.getElementById('overview-overlay');
-  ov.classList.add('open');
-
-  // Build slides for lightbox
-  const slides = [];
-  TFS.forEach(t => {
-    _ovItems(tr, t).forEach((it, ii) => {
-      const nk = ii === 0 ? t : t + '_' + ii;
-      const its = _ovItems(tr, t);
-      slides.push({ src: it.url, label: its.length > 1 ? t + ' #' + (ii+1) : t, note: tr.notes?.[nk] || '' });
-    });
-  });
-
-  // Collect all cards
-  const cards = [];
-  TFS.forEach(tf => {
-    const its = _ovItems(tr, tf);
-    its.forEach((item, i) => {
-      const nk = i === 0 ? tf : tf + '_' + i;
-      cards.push({ url: item.url, instrument: item.instrument, label: its.length > 1 ? tf + ' #' + (i+1) : tf, note: tr.notes?.[nk] || '' });
-    });
-  });
-
-  if (!cards.length) return;
-
-  requestAnimationFrame(() => {
-    const grid = document.getElementById('overview-grid');
-    grid.innerHTML = '';
-    grid.style.position = 'relative';
-
-    const cw = grid.clientWidth || 900;
-    const PAD = 28;
-    const avail = cw - PAD * 2;
-
-    const WIDTHS = [Math.round(avail * 0.32), Math.round(avail * 0.24), Math.round(avail * 0.28)];
-    const XNORMS = [0.04, 0.44, 0.64, 0.12, 0.50, 0.22, 0.60, 0.08, 0.40, 0.68];
-    const HEAD_H = 30;
-    const NOTE_H = 38;
-    const V_STEP = 1.0;
-
-    const positions = [];
-    let y = PAD;
-    cards.forEach((card, i) => {
-      const w = WIDTHS[i % WIDTHS.length];
-      const xn = XNORMS[i % XNORMS.length];
-      const x = PAD + xn * (avail - w);
-      const imgH = Math.round(w * 9 / 16);
-      const h = HEAD_H + imgH + (card.note ? NOTE_H : 0);
-      positions.push({ x, y, w, h, imgH });
-      y += Math.round(h * V_STEP) + 24;
-    });
-
-    const totalH = y + Math.round((positions[positions.length - 1]?.h || 0) * (1 - V_STEP)) + PAD;
-    grid.style.height = totalH + 'px';
-
-    // SVG connecting curves
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.style.cssText = 'position:absolute;inset:0;width:100%;height:' + totalH + 'px;pointer-events:none;';
-    grid.appendChild(svg);
-
-    for (let i = 0; i < cards.length - 1; i++) {
-      const a = positions[i], b = positions[i + 1];
-      const ax = a.x + a.w / 2, ay = a.y + a.h;
-      const bx = b.x + b.w / 2, by = b.y;
-      const my = (ay + by) / 2;
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d', 'M ' + ax + ' ' + ay + ' C ' + ax + ' ' + my + ', ' + bx + ' ' + my + ', ' + bx + ' ' + by);
-      path.setAttribute('stroke', '#3b82f6');
-      path.setAttribute('stroke-width', '1.5');
-      path.setAttribute('fill', 'none');
-      path.setAttribute('stroke-opacity', '0.45');
-      svg.appendChild(path);
-    }
-
-    // Place cards
-    cards.forEach((card, i) => {
-      const pos = positions[i];
-      const el = document.createElement('div');
-      el.className = 'ov-card';
-      el.style.cssText = 'position:absolute;left:' + pos.x + 'px;top:' + pos.y + 'px;width:' + pos.w + 'px;';
-      const inst = card.instrument;
-      el.innerHTML =
-        '<div class="ov-card-head">' +
-          '<span class="ov-label">' + card.label + '</span>' +
-          (inst ? '<span class="tf-inst-badge tf-inst-badge-' + inst.toLowerCase() + '">' + inst + '</span>' : '') +
-        '</div>' +
-        '<img class="ov-img" src="' + card.url + '" alt="' + card.label + '" style="height:' + pos.imgH + 'px;object-fit:contain;background:var(--bg3);"/>' +
-        (card.note ? '<div class="ov-note">' + card.note + '</div>' : '');
-      el.querySelector('.ov-img').onclick = () => openLightbox(card.url, slides);
-      grid.appendChild(el);
-    });
-  });
-}
-function closeOverview() {
-  document.getElementById('overview-overlay').classList.remove('open');
-}
-
-document.getElementById('overview-close').onclick = closeOverview;
-document.getElementById('overview-overlay').onclick = (e) => {
-  if (e.target === document.getElementById('overview-overlay')) closeOverview();
-};
 
 function closeLightbox() {
   document.getElementById('lightbox').classList.remove('open');
@@ -981,7 +863,7 @@ document.addEventListener('keydown', e => {
     if (e.key === 'ArrowRight') { if (_lbIdx < _lbSlides.length - 1) { _lbIdx++; _lbShow(); } return; }
     if (e.key === 'ArrowLeft') { if (_lbIdx > 0) { _lbIdx--; _lbShow(); } return; }
   }
-  if (e.key === 'Escape') { closeLightbox(); closeOverview(); closeModal(); closeTL(); }
+  if (e.key === 'Escape') { closeLightbox(); closeModal(); closeTL(); }
 });
 
 // ── Trades list ───────────────────────────────────────────────
