@@ -594,6 +594,7 @@ function openModal(key, date) {
             if (items3.length > 0) tr.screenshots[tf] = items3;
             else delete tr.screenshots[tf];
             renderTFButtons(); renderTFMain();
+            scheduleAutoSave();
           };
         });
       });
@@ -614,6 +615,7 @@ function openModal(key, date) {
         tr.screenshots[tf] = [...existing, { url, instrument: selectedInstrument }];
         renderTFButtons();
         renderTFMain();
+        scheduleAutoSave();
         showToast(`Screenshot nahrán → ${tf}`);
       } catch(e) {
         console.error(e);
@@ -681,6 +683,7 @@ function openModal(key, date) {
               tr.screenshots[tf] = [...tfItems(tf), { url, instrument: selectedInstrument }];
               selectedTF = null;
               renderTFButtons(); renderTFMain();
+              scheduleAutoSave();
             } catch(e) { console.error(e); showToast('Nahrávání selhalo'); }
             btn.disabled = false;
           };
@@ -746,9 +749,7 @@ function openModal(key, date) {
     const saveBtn = document.createElement('button');
     saveBtn.className = 'save-btn';
     saveBtn.textContent = 'Uložit';
-    saveBtn.onclick = async () => {
-      saveBtn.textContent = 'Saving…';
-      saveBtn.disabled = true;
+    function collectAndSave() {
       const rrVal = document.getElementById('rr-inp')?.value;
       const notes = {};
       TFS.forEach(tf => {
@@ -767,7 +768,27 @@ function openModal(key, date) {
       tr.pnl = rawPnl != null ? (selResult === 'loss' ? -Math.abs(rawPnl) : Math.abs(rawPnl)) : null;
       tr.notes = notes;
       tr.finalNotes = document.getElementById('final-notes')?.value || '';
-      await saveDayData(key, dayData);
+      return saveDayData(key, dayData);
+    }
+
+    let autoSaveTimer = null;
+    function scheduleAutoSave() {
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = setTimeout(async () => {
+        await collectAndSave();
+        render();
+        showToast('Automaticky uloženo ✓');
+      }, 1500);
+    }
+
+    // Wire auto-save to all text inputs in modal body
+    body.addEventListener('input', scheduleAutoSave);
+
+    saveBtn.onclick = async () => {
+      clearTimeout(autoSaveTimer);
+      saveBtn.textContent = 'Saving…';
+      saveBtn.disabled = true;
+      await collectAndSave();
       closeModal();
       render();
       showToast('Uloženo ✓');
