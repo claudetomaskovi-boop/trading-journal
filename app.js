@@ -777,7 +777,6 @@ function openModal(key, date) {
       autoSaveTimer = setTimeout(async () => {
         await collectAndSave();
         render();
-        showToast('Automaticky uloženo ✓');
       }, 1500);
     }
 
