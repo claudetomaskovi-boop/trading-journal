@@ -584,7 +584,18 @@ function openModal(key, date) {
           `;
           area.appendChild(card);
 
-          card.querySelector('.tf-img-wrap').onclick = () => openLightbox(url, tf, tr, noteKey);
+          card.querySelector('.tf-img-wrap').onclick = () => {
+            // Build all slides from current trade
+            const slides = [];
+            TFS.forEach(t => {
+              tfItems(t).forEach((it, ii) => {
+                const nk = ii === 0 ? t : `${t}_${ii}`;
+                const lbl = tfItems(t).length > 1 ? `${t} #${ii+1}` : t;
+                slides.push({ src: it.url, label: lbl, note: tr.notes?.[nk] || '' });
+              });
+            });
+            openLightbox(url, slides);
+          };
 
           card.querySelector('.tf-img-del').onclick = (e) => {
             e.stopPropagation();
@@ -809,16 +820,9 @@ function closeModal() {
 let _lbSlides = []; // [{src, label, note}]
 let _lbIdx = 0;
 
-function openLightbox(src, tf, tr, noteKey) {
-  // Build full slide list from all TFs in this trade
-  _lbSlides = [];
-  TFS.forEach(t => {
-    tfItems(t).forEach((item, i) => {
-      const nk = i === 0 ? t : `${t}_${i}`;
-      _lbSlides.push({ src: item.url, label: t + (tfItems(t).length > 1 ? ` #${i+1}` : ''), note: tr?.notes?.[nk] || '' });
-    });
-  });
-  _lbIdx = _lbSlides.findIndex(s => s.src === src);
+function openLightbox(src, slides) {
+  _lbSlides = slides;
+  _lbIdx = slides.findIndex(s => s.src === src);
   if (_lbIdx < 0) _lbIdx = 0;
   _lbShow();
   document.getElementById('lightbox').classList.add('open');
