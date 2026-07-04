@@ -856,53 +856,107 @@ function _lbShow() {
 }
 
 // ── Overview ──────────────────────────────────────────────────
+function _ovItems(tr, tf) {
+  const s = tr.screenshots?.[tf];
+  if (!s) return [];
+  const arr = Array.isArray(s) ? s : [s];
+  return arr.map(x => typeof x === 'string' ? { url: x, instrument: null } : x);
+}
+
 function openOverview(tr) {
   const ov = document.getElementById('overview-overlay');
-  const grid = document.getElementById('overview-grid');
-  grid.innerHTML = '';
+  ov.classList.add('open');
 
-  TFS.forEach(tf => {
-    const items = (() => {
-      const s = tr.screenshots?.[tf];
-      if (!s) return [];
-      const arr = Array.isArray(s) ? s : [s];
-      return arr.map(x => typeof x === 'string' ? { url: x, instrument: null } : x);
-    })();
-    if (!items.length) return;
-
-    items.forEach((item, i) => {
-      const nk = i === 0 ? tf : `${tf}_${i}`;
-      const note = tr.notes?.[nk] || '';
-      const label = items.length > 1 ? `${tf} #${i+1}` : tf;
-      const inst = item.instrument;
-
-      const card = document.createElement('div');
-      card.className = 'ov-card';
-      card.innerHTML = `
-        <div class="ov-card-head">
-          <span class="ov-label">${label}</span>
-          ${inst ? `<span class="tf-inst-badge tf-inst-badge-${inst.toLowerCase()}">${inst}</span>` : ''}
-        </div>
-        <img class="ov-img" src="${item.url}" alt="${label}"/>
-        ${note ? `<div class="ov-note">${note}</div>` : ''}
-      `;
-      card.querySelector('.ov-img').onclick = () => {
-        closeLightbox();
-        // Build slides from tr
-        const slides = [];
-        TFS.forEach(t => {
-          const its = (() => { const s2 = tr.screenshots?.[t]; if (!s2) return []; const a = Array.isArray(s2)?s2:[s2]; return a.map(x=>typeof x==='string'?{url:x,instrument:null}:x); })();
-          its.forEach((it, ii) => { const nk2 = ii===0?t:`${t}_${ii}`; slides.push({src:it.url,label:its.length>1?`${t} #${ii+1}`:t,note:tr.notes?.[nk2]||''}); });
-        });
-        openLightbox(item.url, slides);
-      };
-      grid.appendChild(card);
+  // Build slides for lightbox
+  const slides = [];
+  TFS.forEach(t => {
+    _ovItems(tr, t).forEach((it, ii) => {
+      const nk = ii === 0 ? t : t + '_' + ii;
+      const its = _ovItems(tr, t);
+      slides.push({ src: it.url, label: its.length > 1 ? t + ' #' + (ii+1) : t, note: tr.notes?.[nk] || '' });
     });
   });
 
-  ov.classList.add('open');
-}
+  // Collect all cards
+  const cards = [];
+  TFS.forEach(tf => {
+    const its = _ovItems(tr, tf);
+    its.forEach((item, i) => {
+      const nk = i === 0 ? tf : tf + '_' + i;
+      cards.push({ url: item.url, instrument: item.instrument, label: its.length > 1 ? tf + ' #' + (i+1) : tf, note: tr.notes?.[nk] || '' });
+    });
+  });
 
+  if (!cards.length) return;
+
+  requestAnimationFrame(() => {
+    const grid = document.getElementById('overview-grid');
+    grid.innerHTML = '';
+    grid.style.position = 'relative';
+
+    const cw = grid.clientWidth || 900;
+    const PAD = 28;
+    const avail = cw - PAD * 2;
+
+    const WIDTHS = [Math.round(avail * 0.38), Math.round(avail * 0.26), Math.round(avail * 0.32)];
+    const XNORMS = [0, 0.48, 0.06, 0.42, 0.65, 0.18, 0.52, 0.28, 0.72, 0.08];
+    const HEAD_H = 30;
+    const NOTE_H = 38;
+    const V_STEP = 0.58;
+
+    const positions = [];
+    let y = PAD;
+    cards.forEach((card, i) => {
+      const w = WIDTHS[i % WIDTHS.length];
+      const xn = XNORMS[i % XNORMS.length];
+      const x = PAD + xn * (avail - w);
+      const imgH = Math.round(w * 9 / 16);
+      const h = HEAD_H + imgH + (card.note ? NOTE_H : 0);
+      positions.push({ x, y, w, h, imgH });
+      y += Math.round(h * V_STEP) + 16;
+    });
+
+    const totalH = y + Math.round((positions[positions.length - 1]?.h || 0) * (1 - V_STEP)) + PAD;
+    grid.style.height = totalH + 'px';
+
+    // SVG connecting curves
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.style.cssText = 'position:absolute;inset:0;width:100%;height:' + totalH + 'px;pointer-events:none;';
+    grid.appendChild(svg);
+
+    for (let i = 0; i < cards.length - 1; i++) {
+      const a = positions[i], b = positions[i + 1];
+      const ax = a.x + a.w / 2, ay = a.y + a.h;
+      const bx = b.x + b.w / 2, by = b.y;
+      const my = (ay + by) / 2;
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M ' + ax + ' ' + ay + ' C ' + ax + ' ' + my + ', ' + bx + ' ' + my + ', ' + bx + ' ' + by);
+      path.setAttribute('stroke', '#3b82f6');
+      path.setAttribute('stroke-width', '1.5');
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke-opacity', '0.45');
+      svg.appendChild(path);
+    }
+
+    // Place cards
+    cards.forEach((card, i) => {
+      const pos = positions[i];
+      const el = document.createElement('div');
+      el.className = 'ov-card';
+      el.style.cssText = 'position:absolute;left:' + pos.x + 'px;top:' + pos.y + 'px;width:' + pos.w + 'px;';
+      const inst = card.instrument;
+      el.innerHTML =
+        '<div class="ov-card-head">' +
+          '<span class="ov-label">' + card.label + '</span>' +
+          (inst ? '<span class="tf-inst-badge tf-inst-badge-' + inst.toLowerCase() + '">' + inst + '</span>' : '') +
+        '</div>' +
+        '<img class="ov-img" src="' + card.url + '" alt="' + card.label + '" style="height:' + pos.imgH + 'px;object-fit:contain;background:var(--bg3);"/>' +
+        (card.note ? '<div class="ov-note">' + card.note + '</div>' : '');
+      el.querySelector('.ov-img').onclick = () => openLightbox(card.url, slides);
+      grid.appendChild(el);
+    });
+  });
+}
 function closeOverview() {
   document.getElementById('overview-overlay').classList.remove('open');
 }
