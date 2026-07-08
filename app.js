@@ -419,15 +419,15 @@ function computeDaySummary(dayData) {
 }
 
 // ── Modal ─────────────────────────────────────────────────────
-function openModal(key, date) {
+function openModal(key, date, opts = {}) {
+  const { title: _title = null, initialData = null, saveFunc = null, afterSave = null, hideAddTrade = false } = opts;
   openKey = key;
-  let dayData = normalizeDayData(key);
+  let dayData = initialData || normalizeDayData(key);
   if (dayData.tradeList.length === 0) dayData.tradeList.push({ result: null, rr: null, pnl: null, screenshots: {}, notes: {}, finalNotes: '' });
 
   let activeIdx = 0;
 
-  document.getElementById('modal-date').textContent =
-    `${date.getDate()}. ${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+  document.getElementById('modal-date').textContent = _title || `${date.getDate()}. ${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
 
   const body = document.getElementById('modal-body');
 
@@ -754,7 +754,7 @@ function openModal(key, date) {
       activeIdx = dayData.tradeList.length - 1;
       renderModal();
     };
-    body.appendChild(addBtn);
+    if (!hideAddTrade) body.appendChild(addBtn);
 
     const saveRow = document.createElement('div');
     saveRow.className = 'save-row';
@@ -780,7 +780,7 @@ function openModal(key, date) {
       tr.pnl = rawPnl != null ? (selResult === 'loss' ? -Math.abs(rawPnl) : Math.abs(rawPnl)) : null;
       tr.notes = notes;
       tr.finalNotes = document.getElementById('final-notes')?.value || '';
-      return saveDayData(key, dayData);
+      return saveFunc ? saveFunc(dayData) : saveDayData(key, dayData);
     }
 
     let autoSaveTimer = null;
@@ -788,7 +788,7 @@ function openModal(key, date) {
       clearTimeout(autoSaveTimer);
       autoSaveTimer = setTimeout(async () => {
         await collectAndSave();
-        render();
+        (afterSave || render)();
       }, 1500);
     }
 
@@ -801,7 +801,7 @@ function openModal(key, date) {
       saveBtn.disabled = true;
       await collectAndSave();
       closeModal();
-      render();
+      (afterSave || render)();
       showToast('Uloženo ✓');
     };
     saveRow.appendChild(saveBtn);
@@ -1070,11 +1070,14 @@ document.getElementById('tab-stats').onclick    = () => switchView('stats');
 function switchView(view) {
   if (view === activeView) return;
   const views = { calendar: 'view-calendar', stats: 'view-stats' };
-  const outEl = document.getElementById(views[activeView]);
+  const outEl = document.getElementById(views[activeView]) || document.getElementById('view-backtest');
   const inEl  = document.getElementById(views[view]);
   activeView = view;
   document.getElementById('tab-calendar').classList.toggle('active', view === 'calendar');
   document.getElementById('tab-stats').classList.toggle('active', view === 'stats');
+  document.getElementById('tab-backtest').classList.remove('active');
+  document.getElementById('sidebar').style.display = '';
+  document.getElementById('view-backtest').style.display = 'none';
   if (view === 'stats') renderStats();
   // fade out old
   if (outEl) { outEl.style.opacity = '0'; setTimeout(() => { outEl.style.display = 'none'; }, 200); }
@@ -1576,3 +1579,129 @@ function initAnimControls() {
   applyAnimSettings();
 }
 
+
+// ── Backtest ──────────────────────────────────────────────────
+const BT_PER_PAGE = 25;
+let btCurrentPage = 1;
+let btPageCache = {};
+
+function btKey(page) { return currentUser + '_bt_' + page; }
+
+async function loadBTPage(page) {
+  if (btPageCache[page]) return btPageCache[page];
+  const k = btKey(page);
+  const { data } = await sb.from('trades').select('trade_list').eq('key', k).maybeSingle();
+  const raw = data?.trade_list;
+  const parsed = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : { tradeList: [] };
+  if (!parsed.tradeList) parsed.tradeList = [];
+  btPageCache[page] = parsed;
+  return parsed;
+}
+
+async function saveBTPage(page, data) {
+  const k = btKey(page);
+  btPageCache[page] = data;
+  await sb.from('trades').upsert({ key: k, trade_list: data }, { onConflict: 'key' });
+}
+
+async function renderBT() {
+  const page = btCurrentPage;
+  document.getElementById('bt-page-label').textContent = 'Stránka ' + page;
+  document.getElementById('bt-prev').disabled = page <= 1;
+  const data = await loadBTPage(page);
+  const trades = data.tradeList;
+  const grid = document.getElementById('bt-grid');
+  grid.innerHTML = '';
+
+  for (let i = 0; i < BT_PER_PAGE; i++) {
+    const cell = document.createElement('div');
+    const tr = trades[i];
+    const isNext = i === trades.length && trades.length < BT_PER_PAGE;
+    const isFilled = !!tr;
+    const isLocked = !isFilled && !isNext;
+
+    cell.className = 'bt-cell' +
+      (isFilled ? ' bt-cell-' + (tr.result || 'empty') : '') +
+      (isNext ? ' bt-cell-next' : '') +
+      (isLocked ? ' bt-cell-locked' : '');
+
+    cell.dataset.idx = i;
+
+    if (isFilled) {
+      const num = document.createElement('div');
+      num.className = 'bt-cell-num';
+      num.textContent = '#' + (i + 1);
+      cell.appendChild(num);
+
+      if (tr.result) {
+        const badge = document.createElement('div');
+        badge.className = 'bt-cell-badge';
+        badge.textContent = tr.result === 'be' ? 'BE' : tr.result.toUpperCase();
+        cell.appendChild(badge);
+      }
+
+      if (tr.rr || tr.pnl) {
+        const rr = document.createElement('div');
+        rr.className = 'bt-cell-rr';
+        if (tr.rr) {
+          const sign = tr.result === 'loss' ? '-' : '+';
+          rr.textContent = sign + tr.rr + 'R';
+        }
+        cell.appendChild(rr);
+      }
+    } else if (isNext) {
+      const plus = document.createElement('div');
+      plus.className = 'bt-cell-plus';
+      plus.textContent = '+';
+      cell.appendChild(plus);
+    } else {
+      const numGhost = document.createElement('div');
+      numGhost.className = 'bt-cell-num-ghost';
+      numGhost.textContent = '#' + (i + 1);
+      cell.appendChild(numGhost);
+    }
+
+    if (!isLocked) {
+      cell.onclick = () => openBTTrade(page, i, data);
+    }
+
+    grid.appendChild(cell);
+  }
+}
+
+function openBTTrade(page, idx, data) {
+  if (!data.tradeList[idx]) {
+    data.tradeList[idx] = { result: null, rr: null, pnl: null, screenshots: {}, notes: {}, finalNotes: '' };
+  }
+  const singleItemData = { tradeList: [data.tradeList[idx]] };
+
+  openModal(btKey(page), null, {
+    title: 'Obchod #' + (idx + 1) + ' — stránka ' + page,
+    initialData: singleItemData,
+    saveFunc: async (d) => {
+      data.tradeList[idx] = d.tradeList[0];
+      await saveBTPage(page, data);
+    },
+    afterSave: renderBT,
+    hideAddTrade: true,
+  });
+}
+
+document.getElementById('bt-prev').onclick = async () => {
+  if (btCurrentPage > 1) { btCurrentPage--; await renderBT(); }
+};
+document.getElementById('bt-next').onclick = async () => {
+  btCurrentPage++;
+  if (!btPageCache[btCurrentPage]) btPageCache[btCurrentPage] = { tradeList: [] };
+  await renderBT();
+};
+
+document.getElementById('tab-backtest').onclick = async () => {
+  document.querySelectorAll('.topbar-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-backtest').classList.add('active');
+  document.getElementById('view-calendar').style.display = 'none';
+  document.getElementById('view-stats').style.display = 'none';
+  document.getElementById('view-backtest').style.display = '';
+  document.getElementById('sidebar').style.display = 'none';
+  await renderBT();
+};

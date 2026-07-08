@@ -411,6 +411,27 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 .lb-counter{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.6);font-size:13px;font-weight:500;z-index:401;pointer-events:none;}
 
 
+/* ── Backtest ── */
+.bt-wrap{flex:1;display:flex;flex-direction:column;align-items:center;padding:24px;overflow-y:auto;gap:16px;}
+.bt-nav{display:flex;align-items:center;gap:16px;flex-shrink:0;}
+.bt-page-label{font-size:14px;font-weight:600;color:var(--text);min-width:100px;text-align:center;}
+.bt-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;width:100%;max-width:700px;}
+.bt-cell{aspect-ratio:1;border-radius:10px;border:1.5px solid var(--border);background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:border-color .15s,background .15s;position:relative;overflow:hidden;}
+.bt-cell:not(.bt-cell-locked):hover{border-color:var(--text);background:var(--bg3);}
+.bt-cell-win{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.4);}
+.bt-cell-loss{background:rgba(220,38,38,.1);border-color:rgba(220,38,38,.4);}
+.bt-cell-be{background:rgba(234,179,8,.1);border-color:rgba(234,179,8,.4);}
+.bt-cell-next{border-style:dashed;border-color:var(--muted2);}
+.bt-cell-locked{opacity:.25;cursor:default;pointer-events:none;}
+.bt-cell-num{font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:.05em;}
+.bt-cell-num-ghost{font-size:10px;color:var(--muted2);opacity:.5;}
+.bt-cell-badge{font-size:11px;font-weight:700;color:var(--text);}
+.bt-cell-win .bt-cell-badge{color:#22c55e;}
+.bt-cell-loss .bt-cell-badge{color:#ef4444;}
+.bt-cell-be .bt-cell-badge{color:#eab308;}
+.bt-cell-rr{font-size:10px;color:var(--muted2);}
+.bt-cell-plus{font-size:28px;color:var(--muted2);line-height:1;}
+
 /* ── Trades list overlay ── */
 .tl-overlay{
   position:fixed;inset:0;background:rgba(0,0,0,.3);

@@ -28,6 +28,7 @@
     <div class="topbar-tabs">
       <button class="topbar-tab active" id="tab-calendar">Kalendář</button>
       <button class="topbar-tab" id="tab-stats">Statistiky</button>
+      <button class="topbar-tab" id="tab-backtest">Backtest</button>
     </div>
     <div class="topbar-right">
     <button class="settings-btn" id="settings-btn" title="Nastavení">
@@ -119,6 +120,16 @@
     <!-- Stats view -->
     <div class="stats-wrap" id="view-stats" style="display:none">
       <div class="stats-inner" id="stats-inner"></div>
+    </div>
+
+    <!-- Backtest view -->
+    <div class="bt-wrap" id="view-backtest" style="display:none">
+      <div class="bt-nav">
+        <button class="nav-btn" id="bt-prev">&#8592;</button>
+        <div class="bt-page-label" id="bt-page-label"></div>
+        <button class="nav-btn" id="bt-next">&#8594;</button>
+      </div>
+      <div class="bt-grid" id="bt-grid"></div>
     </div>
 
   </div>
