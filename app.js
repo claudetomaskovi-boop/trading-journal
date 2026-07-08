@@ -602,7 +602,7 @@ function openModal(key, date, opts = {}) {
               tfItems(t).forEach((it, ii) => {
                 const nk = ii === 0 ? t : `${t}_${ii}`;
                 const lbl = tfItems(t).length > 1 ? `${t} #${ii+1}` : t;
-                slides.push({ src: it.url, label: lbl, note: tr.notes?.[nk] || '' });
+                slides.push({ src: it.url, label: lbl, note: tr.notes?.[nk] || '', mentorNote: tr.notes?.[nk + '_m'] || '' });
               });
             });
             openLightbox(url, slides);
@@ -848,8 +848,16 @@ function _lbShow() {
   document.getElementById('lightbox-img').src = s.src;
   document.getElementById('lightbox-label').textContent = s.label;
   const notesEl = document.getElementById('lightbox-notes');
-  if (s.note) { notesEl.textContent = s.note; notesEl.classList.remove('empty'); }
-  else { notesEl.textContent = 'No notes for this timeframe.'; notesEl.classList.add('empty'); }
+  const hasAny = s.note || s.mentorNote;
+  if (hasAny) {
+    notesEl.classList.remove('empty');
+    notesEl.innerHTML =
+      (s.note ? '<div class="lb-note-block"><div class="lb-note-lbl">Já</div><div class="lb-note-txt">' + s.note + '</div></div>' : '') +
+      (s.mentorNote ? '<div class="lb-note-block"><div class="lb-note-lbl">Mentor</div><div class="lb-note-txt">' + s.mentorNote + '</div></div>' : '');
+  } else {
+    notesEl.classList.add('empty');
+    notesEl.textContent = 'Žádné poznámky.';
+  }
   const total = _lbSlides.length;
   const prevBtn = document.getElementById('lb-prev');
   const nextBtn = document.getElementById('lb-next');
@@ -857,7 +865,7 @@ function _lbShow() {
   nextBtn.style.display = total > 1 ? '' : 'none';
   prevBtn.disabled = _lbIdx === 0;
   nextBtn.disabled = _lbIdx === total - 1;
-  document.getElementById('lb-counter').textContent = total > 1 ? `${_lbIdx + 1} / ${total}` : '';
+  document.getElementById('lb-counter').textContent = total > 1 ? ((_lbIdx + 1) + ' / ' + total) : '';
 }
 
 

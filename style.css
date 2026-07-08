@@ -394,10 +394,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
   font-size:11px;font-weight:700;text-transform:uppercase;
   letter-spacing:.1em;color:var(--accent);
 }
-.lightbox-notes{
-  font-size:12px;line-height:1.6;color:var(--text);white-space:pre-wrap;flex:1;
-}
+.lightbox-notes{font-size:12px;line-height:1.6;color:var(--text);flex:1;display:flex;flex-direction:column;gap:10px;}
 .lightbox-notes.empty{color:var(--muted2);font-style:italic}
+.lb-note-block{display:flex;flex-direction:column;gap:3px;}
+.lb-note-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted2);}
+.lb-note-txt{white-space:pre-wrap;color:var(--text);}
 .lightbox-close{
   position:fixed;top:16px;right:20px;
   width:32px;height:32px;border-radius:50%;
