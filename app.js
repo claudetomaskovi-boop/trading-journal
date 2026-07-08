@@ -567,7 +567,9 @@ function openModal(key, date, opts = {}) {
         items2.forEach((item, i) => {
           const { url, instrument } = item;
           const noteKey = i === 0 ? tf : `${tf}_${i}`;
+          const mentorKey = noteKey + '_m';
           const cardNote = tr.notes?.[noteKey] || '';
+          const mentorNote = tr.notes?.[mentorKey] || '';
           const card = document.createElement('div');
           card.className = 'tf-card';
           const tfLabel = items2.length > 1 ? `${tf} <span style="opacity:.5;font-weight:400">#${i+1}</span>` : tf;
@@ -580,7 +582,16 @@ function openModal(key, date, opts = {}) {
             <div class="tf-img-wrap" id="wrap-${tf}-${i}">
               <img src="${url}" alt="${tf}"/>
             </div>
-            <textarea class="tf-note" id="note-${noteKey}" placeholder="Poznámky k ${tf}...">${cardNote}</textarea>
+            <div class="tf-notes-row">
+              <div class="tf-note-block">
+                <div class="tf-note-lbl">Já</div>
+                <textarea class="tf-note" id="note-${noteKey}" placeholder="Moje poznámky...">${cardNote}</textarea>
+              </div>
+              <div class="tf-note-block">
+                <div class="tf-note-lbl">Mentor</div>
+                <textarea class="tf-note" id="note-${mentorKey}" placeholder="Poznámky mentora...">${mentorNote}</textarea>
+              </div>
+            </div>
           `;
           area.appendChild(card);
 
@@ -769,8 +780,11 @@ function openModal(key, date, opts = {}) {
         const count = Math.max(1, urls2.length);
         for (let i = 0; i < count; i++) {
           const noteKey = i === 0 ? tf : `${tf}_${i}`;
+          const mentorKey = noteKey + '_m';
           const v = document.getElementById(`note-${noteKey}`)?.value || '';
+          const vm = document.getElementById(`note-${mentorKey}`)?.value || '';
           if (v) notes[noteKey] = v;
+          if (vm) notes[mentorKey] = vm;
         }
       });
       const pnlVal = document.getElementById('pnl-inp')?.value;
