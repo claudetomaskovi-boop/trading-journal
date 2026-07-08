@@ -416,11 +416,14 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 
 
 /* ── Backtest ── */
-.bt-wrap{flex:1;display:flex;flex-direction:column;align-items:center;padding:24px;overflow-y:auto;gap:16px;}
-.bt-nav{display:flex;align-items:center;gap:16px;flex-shrink:0;}
+.bt-wrap{flex:1;display:flex;flex-direction:column;align-items:center;padding:16px;gap:6px;overflow-y:auto;background:var(--bg2);position:absolute;inset:0;transition:opacity .2s ease;}
+.bt-nav{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;max-width:700px;}
 .bt-page-label{font-size:14px;font-weight:600;color:var(--text);min-width:100px;text-align:center;}
-.bt-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;width:100%;max-width:700px;}
-.bt-cell{aspect-ratio:1;border-radius:10px;border:1px solid var(--border);background:var(--bg);box-shadow:0 1px 4px rgba(0,0,0,.12);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:border-color .15s,background .15s;position:relative;overflow:hidden;}
+.bt-inner{display:flex;flex-direction:column;width:100%;max-width:700px;background:var(--bg3);border-radius:12px;padding:12px;box-shadow:0 4px 6px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.08),0 20px 48px rgba(0,0,0,.06);position:relative;z-index:0;}
+.bt-inner::before{content:'';position:absolute;inset:-2px;border-radius:14px;background:conic-gradient(from var(--angle),transparent 0%,transparent 30%,#2563eb 42%,#93c5fd 47%,#2563eb 52%,transparent 60%,transparent 80%,#2563eb 92%,#93c5fd 97%,#2563eb 100%);z-index:-1;animation:spin-border 10s linear infinite;}
+.bt-inner::after{content:'';position:absolute;inset:1px;border-radius:11px;background:var(--bg3);z-index:-1;}
+.bt-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;width:100%;}
+.bt-cell{aspect-ratio:1;border-radius:8px;border:1px solid var(--border);background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:border-color .15s,background .15s;position:relative;overflow:hidden;}
 .bt-cell:not(.bt-cell-locked):hover{border-color:var(--text);background:var(--bg3);}
 .bt-cell-win{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.4);}
 .bt-cell-loss{background:rgba(220,38,38,.1);border-color:rgba(220,38,38,.4);}
