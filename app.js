@@ -1,5 +1,3 @@
-'use strict';
-
 // ── Login ─────────────────────────────────────────────────────
 // Přidat dalšího uživatele: { username: 'jmeno', password: 'heslo' }
 const USERS = [
