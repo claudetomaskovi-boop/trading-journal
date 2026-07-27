@@ -97,17 +97,22 @@ let displayMode = 'both';
 // ── Supabase data layer ───────────────────────────────────────
 async function loadData() {
   const prefix = currentUser + '_';
+  const migratedKey = 'tj_migrated_' + currentUser;
 
-  // Migrate old keys (no user prefix) → new keys with user prefix
-  const { data: oldData } = await sb.from('trades').select('key, trade_list').like('key', '____-__-__');
-  if (oldData && oldData.length > 0) {
-    const toInsert = oldData.map(r => ({ key: prefix + r.key, trade_list: r.trade_list }));
-    const oldKeys  = oldData.map(r => r.key);
-    await sb.from('trades').upsert(toInsert, { onConflict: 'key' });
-    for (const k of oldKeys) await sb.from('trades').delete().eq('key', k);
+  // One-time migration: old keys had no user prefix — skip if already done
+  if (!localStorage.getItem(migratedKey)) {
+    const { data: oldData } = await sb.from('trades').select('key').like('key', '____-__-__');
+    if (oldData && oldData.length > 0) {
+      const { data: fullOld } = await sb.from('trades').select('key, trade_list').like('key', '____-__-__');
+      const toInsert = (fullOld || []).map(r => ({ key: prefix + r.key, trade_list: r.trade_list }));
+      const oldKeys  = (fullOld || []).map(r => r.key);
+      await sb.from('trades').upsert(toInsert, { onConflict: 'key' });
+      for (const k of oldKeys) await sb.from('trades').delete().eq('key', k);
+    }
+    localStorage.setItem(migratedKey, '1');
   }
 
-  const { data, error } = await sb.from('trades').select('key, trade_list').like('key', prefix + '%');
+  const { data, error } = await sb.from('trades').select('key, trade_list').like('key', prefix + '____-__-__');
   if (error) { console.error('Load error:', error); return; }
   trades = {};
   (data || []).forEach(row => {
