@@ -112,12 +112,16 @@ async function loadData() {
     localStorage.setItem(migratedKey, '1');
   }
 
-  const { data, error } = await sb.from('trades').select('key, trade_list').like('key', prefix + '____-__-__');
+  const pattern = prefix + '____-__-__';
+  console.log('[loadData] querying pattern:', pattern);
+  const { data, error } = await sb.from('trades').select('key, trade_list').like('key', pattern);
+  console.log('[loadData] result:', data, 'error:', error);
   if (error) { console.error('Load error:', error); return; }
   trades = {};
   (data || []).forEach(row => {
     trades[row.key] = { tradeList: row.trade_list || [] };
   });
+  console.log('[loadData] loaded keys:', Object.keys(trades));
 }
 
 async function saveDayData(key, dayData) {
