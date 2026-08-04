@@ -467,6 +467,7 @@ function openModal(key, date, opts = {}) {
   const body = document.getElementById('modal-body');
   let autoSaveTimer = null;
   let _autoSaveListener = null;
+  let _collectAndSave = null;
 
   function renderModal() {
     if (_autoSaveListener) { body.removeEventListener('input', _autoSaveListener); _autoSaveListener = null; }
@@ -503,6 +504,8 @@ function openModal(key, date, opts = {}) {
       `;
       item.addEventListener('click', (e) => {
         if (e.target.classList.contains('trade-item-del')) return;
+        clearTimeout(autoSaveTimer);
+        if (_collectAndSave) _collectAndSave();
         activeIdx = i;
         renderModal();
       });
@@ -842,6 +845,7 @@ function openModal(key, date, opts = {}) {
         (afterSave || render)();
       }, 1500);
     }
+    _collectAndSave = collectAndSave;
     _autoSaveListener = scheduleAutoSave;
     body.addEventListener('input', scheduleAutoSave);
 
