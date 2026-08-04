@@ -119,14 +119,21 @@ async function loadData() {
   if (error) { console.error('Load error:', error); return; }
   trades = {};
   (data || []).forEach(row => {
-    trades[row.key] = { tradeList: row.trade_list || [] };
+    const raw = row.trade_list;
+    if (Array.isArray(raw)) {
+      trades[row.key] = { tradeList: raw };
+    } else if (raw && typeof raw === 'object') {
+      trades[row.key] = { tradeList: raw.tradeList || [], starred: raw.starred || false };
+    }
   });
   console.log('[loadData] loaded keys:', Object.keys(trades));
 }
 
 async function saveDayData(key, dayData) {
   trades[key] = dayData;
-  const { error } = await sb.from('trades').upsert({ key, trade_list: dayData.tradeList }, { onConflict: 'key' });
+  const payload = { tradeList: dayData.tradeList };
+  if (dayData.starred) payload.starred = true;
+  const { error } = await sb.from('trades').upsert({ key, trade_list: payload }, { onConflict: 'key' });
   if (error) console.error('Save error:', error);
 }
 
