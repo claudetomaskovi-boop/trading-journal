@@ -92,6 +92,7 @@ let openKey = null;
 let _globalAutoSaveTimer = null;
 let _globalCollectAndSave = null;
 let _globalAfterSave = null;
+let _globalAutoSaveListener = null;
 let sidebarTab = 'month';
 let customRangeFrom = null;
 let customRangeTo   = null;
@@ -857,6 +858,7 @@ function openModal(key, date, opts = {}) {
     _globalCollectAndSave = collectAndSave;
     _globalAfterSave = afterSave;
     _autoSaveListener = scheduleAutoSave;
+    _globalAutoSaveListener = scheduleAutoSave;
     body.addEventListener('input', scheduleAutoSave);
 
     saveBtn.onclick = async () => {
@@ -879,6 +881,10 @@ function openModal(key, date, opts = {}) {
 function closeModal() {
   clearTimeout(_globalAutoSaveTimer);
   _globalAutoSaveTimer = null;
+  if (_globalAutoSaveListener) {
+    document.getElementById('modal-body').removeEventListener('input', _globalAutoSaveListener);
+    _globalAutoSaveListener = null;
+  }
   if (_globalCollectAndSave) {
     const fn = _globalCollectAndSave;
     const af = _globalAfterSave;
