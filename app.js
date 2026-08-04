@@ -89,6 +89,9 @@ const now = new Date();
 let viewYear = now.getFullYear();
 let viewMonth = now.getMonth();
 let openKey = null;
+let _globalAutoSaveTimer = null;
+let _globalCollectAndSave = null;
+let _globalAfterSave = null;
 let sidebarTab = 'month';
 let customRangeFrom = null;
 let customRangeTo   = null;
@@ -844,8 +847,11 @@ function openModal(key, date, opts = {}) {
         await collectAndSave();
         (afterSave || render)();
       }, 1500);
+      _globalAutoSaveTimer = autoSaveTimer;
     }
     _collectAndSave = collectAndSave;
+    _globalCollectAndSave = collectAndSave;
+    _globalAfterSave = afterSave;
     _autoSaveListener = scheduleAutoSave;
     body.addEventListener('input', scheduleAutoSave);
 
@@ -867,6 +873,15 @@ function openModal(key, date, opts = {}) {
 }
 
 function closeModal() {
+  if (_globalAutoSaveTimer) {
+    clearTimeout(_globalAutoSaveTimer);
+    _globalAutoSaveTimer = null;
+    if (_globalCollectAndSave) {
+      _globalCollectAndSave().then(() => { (_globalAfterSave || render)(); });
+    }
+    _globalCollectAndSave = null;
+    _globalAfterSave = null;
+  }
   document.getElementById('overlay').classList.remove('open');
   openKey = null;
 }
