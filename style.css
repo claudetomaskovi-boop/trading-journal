@@ -228,6 +228,14 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
   transition:all .15s;display:flex;align-items:center;justify-content:center;
 }
 .modal-x:hover{background:var(--loss);color:#fff;border-color:var(--loss)}
+.modal-star{
+  width:28px;height:28px;border-radius:var(--r);border:1px solid var(--border);
+  background:var(--bg3);color:var(--muted);font-size:15px;cursor:pointer;
+  transition:all .15s;display:flex;align-items:center;justify-content:center;margin-left:auto;margin-right:6px;
+}
+.modal-star:hover{border-color:#3b82f6;color:#3b82f6;}
+.modal-star.active{color:#3b82f6;border-color:#3b82f6;background:rgba(59,130,246,.12);}
+.cell-star{position:absolute;top:4px;right:4px;font-size:11px;color:#3b82f6;line-height:1;pointer-events:none;}
 
 .modal-body{padding:16px 18px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;flex:1;min-height:0;}
 

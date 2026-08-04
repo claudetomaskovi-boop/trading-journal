@@ -382,9 +382,10 @@ function renderGrid(dir) {
     const tradeCount = dayData.tradeList.filter(t => t.result).length;
     const countBadge = tradeCount > 1 ? `<div style="font-size:9px;color:var(--muted2);margin-top:1px">${tradeCount} trades</div>` : '';
 
+    const starMark = dayData.starred ? '<div class="cell-star">★</div>' : '';
     const cell = document.createElement('div');
     cell.className = cls;
-    cell.innerHTML = `<div class="cell-num">${d}</div>${badge}${rrTxt}${pnlTxt}${countBadge}<div class="tf-dots">${dots}</div>`;
+    cell.innerHTML = `<div class="cell-num">${d}</div>${starMark}${badge}${rrTxt}${pnlTxt}${countBadge}<div class="tf-dots">${dots}</div>`;
     if (!isFuture) cell.onclick = () => openModal(key, date);
     grid.appendChild(cell);
   });
@@ -435,6 +436,26 @@ function openModal(key, date, opts = {}) {
   let activeIdx = 0;
 
   document.getElementById('modal-date').textContent = _title || `${date.getDate()}. ${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+
+  // Star button — only for calendar days (not BT)
+  const starBtn = document.getElementById('modal-star');
+  if (starBtn) {
+    if (date) {
+      starBtn.style.display = '';
+      const updateStar = () => {
+        starBtn.textContent = dayData.starred ? '★' : '☆';
+        starBtn.classList.toggle('active', !!dayData.starred);
+      };
+      updateStar();
+      starBtn.onclick = () => {
+        dayData.starred = !dayData.starred;
+        updateStar();
+        (saveFunc ? saveFunc(dayData) : saveDayData(key, dayData)).then(() => render());
+      };
+    } else {
+      starBtn.style.display = 'none';
+    }
+  }
 
   const body = document.getElementById('modal-body');
 
