@@ -1116,22 +1116,21 @@ let chartInstances = {};
 
 document.getElementById('tab-calendar').onclick = () => switchView('calendar');
 document.getElementById('tab-stats').onclick    = () => switchView('stats');
+document.getElementById('tab-saved').onclick    = () => switchView('saved');
 
 function switchView(view) {
   if (view === activeView) return;
-  const views = { calendar: 'view-calendar', stats: 'view-stats' };
-  const outEl = document.getElementById(views[activeView]) || document.getElementById('view-backtest');
+  const views = { calendar: 'view-calendar', stats: 'view-stats', saved: 'view-saved' };
+  const outEl = document.getElementById(views[activeView]);
   const inEl  = document.getElementById(views[view]);
   activeView = view;
   document.getElementById('tab-calendar').classList.toggle('active', view === 'calendar');
   document.getElementById('tab-stats').classList.toggle('active', view === 'stats');
-  document.getElementById('tab-backtest').classList.remove('active');
-  document.getElementById('sidebar').style.display = '';
-  document.getElementById('view-backtest').style.display = 'none';
+  document.getElementById('tab-saved').classList.toggle('active', view === 'saved');
+  document.getElementById('sidebar').style.display = view === 'saved' ? 'none' : '';
   if (view === 'stats') renderStats();
-  // fade out old
+  if (view === 'saved') renderSaved();
   if (outEl) { outEl.style.opacity = '0'; setTimeout(() => { outEl.style.display = 'none'; }, 200); }
-  // fade in new
   inEl.style.opacity = '0';
   inEl.style.display = '';
   requestAnimationFrame(() => requestAnimationFrame(() => { inEl.style.opacity = '1'; }));
@@ -1746,12 +1745,50 @@ document.getElementById('bt-next').onclick = async () => {
   await renderBT();
 };
 
-document.getElementById('tab-backtest').onclick = async () => {
-  document.querySelectorAll('.topbar-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-backtest').classList.add('active');
-  document.getElementById('view-calendar').style.display = 'none';
-  document.getElementById('view-stats').style.display = 'none';
-  document.getElementById('view-backtest').style.display = '';
-  document.getElementById('sidebar').style.display = 'none';
-  await renderBT();
-};
+function renderSaved() {
+  const container = document.getElementById('saved-inner');
+  container.innerHTML = '';
+
+  const starredEntries = Object.entries(trades)
+    .filter(([, d]) => d.starred)
+    .sort(([a], [b]) => b.localeCompare(a));
+
+  if (starredEntries.length === 0) {
+    container.innerHTML = '<div class="saved-empty">Žádné uložené dny. Hvězdičkou označ den v detailu záznamu.</div>';
+    return;
+  }
+
+  starredEntries.forEach(([key, dayData]) => {
+    const rawDate = dkRaw(key);
+    const [y, m, d] = rawDate.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    const summary = computeDaySummary(dayData);
+    const totalPnl = (dayData.tradeList || []).reduce((s, t) => s + (t.pnl ?? 0), 0);
+
+    const card = document.createElement('div');
+    card.className = 'saved-card';
+
+    const badgeHtml = summary.result
+      ? `<div class="cell-badge ${summary.result}">${summary.result === 'be' ? 'BE' : summary.result.toUpperCase()}</div>`
+      : '';
+    const rrHtml = summary.rr != null && displayMode !== 'pnl'
+      ? `<span class="saved-rr">${summary.rr > 0 ? '+' : ''}${summary.rr}R</span>` : '';
+    const pnlHtml = totalPnl !== 0 && displayMode !== 'rr'
+      ? `<span class="saved-pnl" style="color:${totalPnl > 0 ? 'var(--win)' : 'var(--loss)'}">${fmtPnl(totalPnl)}</span>` : '';
+
+    const finalNotes = (dayData.tradeList || []).map(t => t.finalNotes).filter(Boolean).join(' ');
+    const notesHtml = finalNotes ? `<div class="saved-notes">${finalNotes}</div>` : '';
+
+    card.innerHTML = `
+      <div class="saved-card-head">
+        <span class="saved-star">★</span>
+        <span class="saved-date">${d}. ${MONTHS[m - 1]} ${y}</span>
+        ${badgeHtml}
+        <span class="saved-meta">${rrHtml}${pnlHtml}</span>
+      </div>
+      ${notesHtml}
+    `;
+    card.onclick = () => openModal(key, date);
+    container.appendChild(card);
+  });
+}
