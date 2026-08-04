@@ -846,6 +846,8 @@ function openModal(key, date, opts = {}) {
     function scheduleAutoSave() {
       clearTimeout(autoSaveTimer);
       autoSaveTimer = setTimeout(async () => {
+        autoSaveTimer = null;
+        _globalAutoSaveTimer = null;
         await collectAndSave();
         (afterSave || render)();
       }, 1500);
@@ -875,14 +877,14 @@ function openModal(key, date, opts = {}) {
 }
 
 function closeModal() {
-  if (_globalAutoSaveTimer) {
-    clearTimeout(_globalAutoSaveTimer);
-    _globalAutoSaveTimer = null;
-    if (_globalCollectAndSave) {
-      _globalCollectAndSave().then(() => { (_globalAfterSave || render)(); });
-    }
+  clearTimeout(_globalAutoSaveTimer);
+  _globalAutoSaveTimer = null;
+  if (_globalCollectAndSave) {
+    const fn = _globalCollectAndSave;
+    const af = _globalAfterSave;
     _globalCollectAndSave = null;
     _globalAfterSave = null;
+    fn().then(() => { (af || render)(); });
   }
   document.getElementById('overlay').classList.remove('open');
   openKey = null;
