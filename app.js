@@ -1783,9 +1783,6 @@ function renderSaved() {
     const pnlHtml = totalPnl !== 0 && displayMode !== 'rr'
       ? `<span class="saved-pnl" style="color:${totalPnl > 0 ? 'var(--win)' : 'var(--loss)'}">${fmtPnl(totalPnl)}</span>` : '';
 
-    const finalNotes = (dayData.tradeList || []).map(t => t.finalNotes).filter(Boolean).join(' ');
-    const notesHtml = finalNotes ? `<div class="saved-notes">${finalNotes}</div>` : '';
-
     card.innerHTML = `
       <div class="saved-card-head">
         <span class="saved-star">★</span>
@@ -1793,7 +1790,6 @@ function renderSaved() {
         ${badgeHtml}
         <span class="saved-meta">${rrHtml}${pnlHtml}</span>
       </div>
-      ${notesHtml}
     `;
     card.onclick = () => openModal(key, date);
     container.appendChild(card);
