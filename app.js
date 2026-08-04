@@ -832,12 +832,14 @@ function openModal(key, date, opts = {}) {
         }
       });
       const pnlVal = document.getElementById('pnl-inp')?.value;
+      console.log('[collectAndSave] key:', key, 'activeIdx:', activeIdx, 'tr identity:', dayData.tradeList.indexOf(tr), 'rr:', rrVal, 'result:', selResult, 'tradeList.length:', dayData.tradeList.length);
       tr.result = selResult;
       tr.rr = rrVal ? parseFloat(rrVal) : (selResult === 'loss' ? 1 : null);
       const rawPnl = pnlVal ? parseFloat(pnlVal) : null;
       tr.pnl = rawPnl != null ? (selResult === 'loss' ? -Math.abs(rawPnl) : Math.abs(rawPnl)) : null;
       tr.notes = notes;
       tr.finalNotes = document.getElementById('final-notes')?.value || '';
+      console.log('[collectAndSave] saving tradeList:', JSON.stringify(dayData.tradeList.map(t => ({result:t.result, rr:t.rr}))));
       return saveFunc ? saveFunc(dayData) : saveDayData(key, dayData);
     }
 
