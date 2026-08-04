@@ -465,8 +465,11 @@ function openModal(key, date, opts = {}) {
   }
 
   const body = document.getElementById('modal-body');
+  let autoSaveTimer = null;
+  let _autoSaveListener = null;
 
   function renderModal() {
+    if (_autoSaveListener) { body.removeEventListener('input', _autoSaveListener); _autoSaveListener = null; }
     body.innerHTML = '';
 
     const tradesSection = document.createElement('div');
@@ -832,7 +835,6 @@ function openModal(key, date, opts = {}) {
       return saveFunc ? saveFunc(dayData) : saveDayData(key, dayData);
     }
 
-    let autoSaveTimer = null;
     function scheduleAutoSave() {
       clearTimeout(autoSaveTimer);
       autoSaveTimer = setTimeout(async () => {
@@ -840,8 +842,7 @@ function openModal(key, date, opts = {}) {
         (afterSave || render)();
       }, 1500);
     }
-
-    // Wire auto-save to all text inputs in modal body
+    _autoSaveListener = scheduleAutoSave;
     body.addEventListener('input', scheduleAutoSave);
 
     saveBtn.onclick = async () => {
