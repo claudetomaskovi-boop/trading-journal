@@ -1775,15 +1775,6 @@ function openBTTrade(page, idx, data) {
   });
 }
 
-document.getElementById('bt-prev').onclick = async () => {
-  if (btCurrentPage > 1) { btCurrentPage--; await renderBT(); }
-};
-document.getElementById('bt-next').onclick = async () => {
-  btCurrentPage++;
-  if (!btPageCache[btCurrentPage]) btPageCache[btCurrentPage] = { tradeList: [] };
-  await renderBT();
-};
-
 function renderSaved() {
   const container = document.getElementById('saved-inner');
   container.innerHTML = '';
