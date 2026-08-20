@@ -424,16 +424,18 @@ function computeDaySummary(dayData) {
   if (list.length === 0) return { result: null, rr: null };
   const results = list.map(t => t.result).filter(Boolean);
   if (results.length === 0) return { result: null, rr: null };
-  let result;
-  if (results.includes('loss')) result = 'loss';
-  else if (results.every(r => r === 'win')) result = 'win';
-  else if (results.every(r => r === 'be')) result = 'be';
-  else result = 'win';
   const rrVals = list.map(t => {
+    if (!t.result) return 0;
     if (t.result === 'loss') return -(t.rr ?? 1);
+    if (t.result === 'be') return 0;
     return t.rr ?? 0;
   });
-  const totalRR = rrVals.reduce((a,b) => a+b, 0);
+  const totalRR = rrVals.reduce((a, b) => a + b, 0);
+  let result;
+  if (results.every(r => r === 'be')) result = 'be';
+  else if (totalRR > 0) result = 'win';
+  else if (totalRR < 0) result = 'loss';
+  else result = 'be';
   return { result, rr: totalRR !== 0 ? Math.round(totalRR * 100) / 100 : null };
 }
 
