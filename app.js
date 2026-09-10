@@ -5,7 +5,7 @@ const USERS = [
 ];
 
 let currentUser = sessionStorage.getItem('tj_user') || '';
-let currentMode = sessionStorage.getItem('tj_mode') || 'demo'; // 'demo' | 'funded'
+let currentMode = sessionStorage.getItem('tj_mode') || 'funded'; // 'demo' | 'funded'
 
 function checkLogin() {
   return sessionStorage.getItem('tj_auth') === '1' && !!currentUser;
@@ -95,7 +95,7 @@ let _globalAutoSaveListener = null;
 let sidebarTab = 'month';
 let customRangeFrom = null;
 let customRangeTo   = null;
-let displayMode = 'both';
+let displayMode = (sessionStorage.getItem('tj_mode') || 'funded') === 'demo' ? 'rr' : (localStorage.getItem('tj_display') || 'both');
 
 // ── Supabase data layer ───────────────────────────────────────
 async function loadData() {
@@ -149,15 +149,22 @@ async function loadData() {
 
 async function switchMode(mode) {
   if (mode === currentMode) return;
+  const body = document.querySelector('.body');
+  body.style.transition = 'opacity 0.2s';
+  body.style.opacity = '0';
+  await new Promise(r => setTimeout(r, 200));
   currentMode = mode;
   sessionStorage.setItem('tj_mode', mode);
+  if (mode === 'demo') { displayMode = 'rr'; }
+  else { displayMode = localStorage.getItem('tj_display') || 'both'; }
   document.getElementById('mode-demo').classList.toggle('active', mode === 'demo');
   document.getElementById('mode-funded').classList.toggle('active', mode === 'funded');
-  document.getElementById('cal-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);font-size:13px">Načítám…</div>';
   await loadData();
   render();
   if (activeView === 'stats') renderStats();
   if (activeView === 'saved') renderSaved();
+  body.style.opacity = '1';
+  setTimeout(() => { body.style.transition = ''; }, 200);
 }
 
 async function saveDayData(key, dayData) {
@@ -1536,6 +1543,7 @@ document.getElementById('settings-overlay').onclick = e => {
 document.querySelectorAll('#mode-opts .settings-opt').forEach(b => {
   b.onclick = () => {
     displayMode = b.dataset.val;
+    if (currentMode !== 'demo') localStorage.setItem('tj_display', displayMode);
     updateSettingsUI();
     applyDisplayMode();
   };
