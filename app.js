@@ -156,6 +156,8 @@ async function switchMode(mode) {
   document.getElementById('cal-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);font-size:13px">Načítám…</div>';
   await loadData();
   render();
+  if (activeView === 'stats') renderStats();
+  if (activeView === 'saved') renderSaved();
 }
 
 async function saveDayData(key, dayData) {
