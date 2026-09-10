@@ -95,7 +95,7 @@ let _globalAutoSaveListener = null;
 let sidebarTab = 'month';
 let customRangeFrom = null;
 let customRangeTo   = null;
-let displayMode = (sessionStorage.getItem('tj_mode') || 'funded') === 'demo' ? 'rr' : (localStorage.getItem('tj_display') || 'both');
+let displayMode = (sessionStorage.getItem('tj_mode') || 'funded') === 'funded' ? 'rr' : (localStorage.getItem('tj_display') || 'both');
 
 // ── Supabase data layer ───────────────────────────────────────
 async function loadData() {
@@ -155,7 +155,7 @@ async function switchMode(mode) {
   await new Promise(r => setTimeout(r, 200));
   currentMode = mode;
   sessionStorage.setItem('tj_mode', mode);
-  if (mode === 'demo') { displayMode = 'rr'; }
+  if (mode === 'funded') { displayMode = 'rr'; }
   else { displayMode = localStorage.getItem('tj_display') || 'both'; }
   document.getElementById('mode-demo').classList.toggle('active', mode === 'demo');
   document.getElementById('mode-funded').classList.toggle('active', mode === 'funded');
@@ -1530,6 +1530,11 @@ function updateSettingsUI() {
   document.querySelectorAll('#currency-opts .settings-opt').forEach(b => {
     b.classList.toggle('active', b.dataset.val === appSettings.currency);
   });
+  const modeSection = document.getElementById('mode-opts').previousElementSibling;
+  const modeOpts = document.getElementById('mode-opts');
+  const fundedLocked = currentMode === 'funded';
+  modeSection.style.display = fundedLocked ? 'none' : '';
+  modeOpts.style.display = fundedLocked ? 'none' : '';
 }
 
 document.getElementById('settings-btn').onclick = e => {
@@ -1543,7 +1548,7 @@ document.getElementById('settings-overlay').onclick = e => {
 document.querySelectorAll('#mode-opts .settings-opt').forEach(b => {
   b.onclick = () => {
     displayMode = b.dataset.val;
-    if (currentMode !== 'demo') localStorage.setItem('tj_display', displayMode);
+    if (currentMode !== 'funded') localStorage.setItem('tj_display', displayMode);
     updateSettingsUI();
     applyDisplayMode();
   };
