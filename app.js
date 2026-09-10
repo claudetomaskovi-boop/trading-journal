@@ -2,11 +2,10 @@
 // Přidat dalšího uživatele: { username: 'jmeno', password: 'heslo' }
 const USERS = [
   { username: 'jenda', password: '1234' },
-  { username: 'erik',  password: '1234' },
-  { username: 'adam',  password: '1234' },
 ];
 
 let currentUser = sessionStorage.getItem('tj_user') || '';
+let currentMode = sessionStorage.getItem('tj_mode') || 'demo'; // 'demo' | 'funded'
 
 function checkLogin() {
   return sessionStorage.getItem('tj_auth') === '1' && !!currentUser;
@@ -100,15 +99,16 @@ let displayMode = 'both';
 
 // ── Supabase data layer ───────────────────────────────────────
 async function loadData() {
-  const prefix = currentUser + '_';
-  const migratedKey = 'tj_migrated_' + currentUser;
+  const userPrefix = currentUser + '_';
+  const modePrefix = currentUser + '_' + currentMode + '_';
 
-  // One-time migration: old keys had no user prefix — skip if already done
+  // Migration 1: old keys had no user prefix (date only)
+  const migratedKey = 'tj_migrated_' + currentUser;
   if (!localStorage.getItem(migratedKey)) {
     const { data: oldData } = await sb.from('trades').select('key').like('key', '____-__-__');
     if (oldData && oldData.length > 0) {
       const { data: fullOld } = await sb.from('trades').select('key, trade_list').like('key', '____-__-__');
-      const toInsert = (fullOld || []).map(r => ({ key: prefix + r.key, trade_list: r.trade_list }));
+      const toInsert = (fullOld || []).map(r => ({ key: userPrefix + r.key, trade_list: r.trade_list }));
       const oldKeys  = (fullOld || []).map(r => r.key);
       await sb.from('trades').upsert(toInsert, { onConflict: 'key' });
       for (const k of oldKeys) await sb.from('trades').delete().eq('key', k);
@@ -116,13 +116,28 @@ async function loadData() {
     localStorage.setItem(migratedKey, '1');
   }
 
-  const pattern = prefix + '____-__-__';
-  console.log('[loadData] querying pattern:', pattern);
-  const { data, error } = await sb.from('trades').select('key, trade_list').like('key', pattern);
-  console.log('[loadData] result:', data, 'error:', error);
+  // Migration 2: keys had user prefix but no mode (jenda_2025-01-01 → jenda_demo_2025-01-01)
+  const modeMigratedKey = 'tj_mode_migrated_' + currentUser;
+  if (!localStorage.getItem(modeMigratedKey)) {
+    const { data: noMode } = await sb.from('trades').select('key, trade_list').like('key', userPrefix + '%');
+    const dateRe = /^\d{4}-\d{2}-\d{2}$/;
+    const toMigrate = (noMode || []).filter(r => dateRe.test(r.key.slice(userPrefix.length)));
+    if (toMigrate.length > 0) {
+      const toInsert = toMigrate.map(r => ({ key: currentUser + '_demo_' + r.key.slice(userPrefix.length), trade_list: r.trade_list }));
+      await sb.from('trades').upsert(toInsert, { onConflict: 'key' });
+      for (const r of toMigrate) await sb.from('trades').delete().eq('key', r.key);
+    }
+    localStorage.setItem(modeMigratedKey, '1');
+  }
+
+  // Load current mode's calendar keys
+  const { data, error } = await sb.from('trades').select('key, trade_list').like('key', modePrefix + '%');
   if (error) { console.error('Load error:', error); return; }
+  const dateRe = /^\d{4}-\d{2}-\d{2}$/;
   trades = {};
   (data || []).forEach(row => {
+    const suffix = row.key.slice(modePrefix.length);
+    if (!dateRe.test(suffix)) return; // skip BT and other non-date keys
     const raw = row.trade_list;
     if (Array.isArray(raw)) {
       trades[row.key] = { tradeList: raw };
@@ -130,7 +145,17 @@ async function loadData() {
       trades[row.key] = { tradeList: raw.tradeList || [], starred: raw.starred || false };
     }
   });
-  console.log('[loadData] loaded keys:', Object.keys(trades));
+}
+
+async function switchMode(mode) {
+  if (mode === currentMode) return;
+  currentMode = mode;
+  sessionStorage.setItem('tj_mode', mode);
+  document.getElementById('mode-demo').classList.toggle('active', mode === 'demo');
+  document.getElementById('mode-funded').classList.toggle('active', mode === 'funded');
+  document.getElementById('cal-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);font-size:13px">Načítám…</div>';
+  await loadData();
+  render();
 }
 
 async function saveDayData(key, dayData) {
@@ -193,17 +218,23 @@ async function clearAllData() {
 }
 
 // ── Helpers ───────────────────────────────────────────────────
-// Full key with user prefix: "jenda_2025-06-09"
+// Full key: "jenda_demo_2025-06-09"
 function dk(d) {
-  return `${currentUser}_${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  return `${currentUser}_${currentMode}_${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
-// Strip user prefix → "2025-06-09"
+// Strip user+mode prefix → "2025-06-09"
 function dkRaw(key) {
-  return key.includes('_') ? key.split('_').slice(1).join('_') : key;
+  // format: username_mode_YYYY-MM-DD — date is always last 10 chars
+  return key.slice(-10);
 }
-// Month prefix with user: "jenda_2025-06"
+// Month prefix: "jenda_demo_2025-06"
 function monthPrefix(y, m) {
-  return `${currentUser}_${y}-${String(m+1).padStart(2,'0')}`;
+  return `${currentUser}_${currentMode}_${y}-${String(m+1).padStart(2,'0')}`;
+}
+// Extract mode from a full key
+function keyMode(key) {
+  const parts = key.split('_');
+  return parts[1] || 'demo';
 }
 
 // ── Init ──────────────────────────────────────────────────────
@@ -231,6 +262,12 @@ function setSquareCells() {
 window.addEventListener('resize', () => requestAnimationFrame(setSquareCells));
 
 async function initApp() {
+  // Mode toggle buttons
+  document.getElementById('mode-demo').classList.toggle('active', currentMode === 'demo');
+  document.getElementById('mode-funded').classList.toggle('active', currentMode === 'funded');
+  document.getElementById('mode-demo').onclick = () => switchMode('demo');
+  document.getElementById('mode-funded').onclick = () => switchMode('funded');
+
   document.getElementById('cal-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);font-size:13px">Načítám…</div>';
   await loadData();
   render();
@@ -1673,7 +1710,7 @@ const BT_PER_PAGE = 25;
 let btCurrentPage = 1;
 let btPageCache = {};
 
-function btKey(page) { return currentUser + '_bt_' + page; }
+function btKey(page) { return `${currentUser}_${currentMode}_bt_${page}`; }
 
 async function loadBTPage(page) {
   if (btPageCache[page]) return btPageCache[page];
@@ -1775,13 +1812,34 @@ function openBTTrade(page, idx, data) {
   });
 }
 
-function renderSaved() {
+async function renderSaved() {
   const container = document.getElementById('saved-inner');
-  container.innerHTML = '';
+  container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px">Načítám…</div>';
 
-  const starredEntries = Object.entries(trades)
-    .filter(([, d]) => d.starred)
+  // Load starred from BOTH modes
+  const { data, error } = await sb.from('trades').select('key, trade_list').like('key', currentUser + '_%');
+  if (error) { container.innerHTML = '<div class="saved-empty">Chyba načítání.</div>'; return; }
+
+  const dateRe = /^\d{4}-\d{2}-\d{2}$/;
+  const modePrefix = { demo: currentUser + '_demo_', funded: currentUser + '_funded_' };
+
+  const starredEntries = (data || [])
+    .filter(row => {
+      const raw = row.trade_list;
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw) || !raw.starred) return false;
+      // must be a calendar date key (not BT)
+      for (const pfx of Object.values(modePrefix)) {
+        if (row.key.startsWith(pfx) && dateRe.test(row.key.slice(pfx.length))) return true;
+      }
+      return false;
+    })
+    .map(row => {
+      const raw = row.trade_list;
+      return [row.key, { tradeList: raw.tradeList || [], starred: true }];
+    })
     .sort(([a], [b]) => b.localeCompare(a));
+
+  container.innerHTML = '';
 
   if (starredEntries.length === 0) {
     container.innerHTML = '<div class="saved-empty">Žádné uložené dny. Hvězdičkou označ den v detailu záznamu.</div>';
@@ -1794,6 +1852,8 @@ function renderSaved() {
     const date = new Date(y, m - 1, d);
     const summary = computeDaySummary(dayData);
     const totalPnl = (dayData.tradeList || []).reduce((s, t) => s + (t.pnl ?? 0), 0);
+    const entryMode = key.includes('_funded_') ? 'funded' : 'demo';
+    const modeBadge = `<span class="saved-mode-badge ${entryMode}">${entryMode === 'funded' ? 'FUNDED' : 'DEMO'}</span>`;
 
     const card = document.createElement('div');
     card.className = 'saved-card';
@@ -1810,11 +1870,16 @@ function renderSaved() {
       <div class="saved-card-head">
         <span class="saved-star">★</span>
         <span class="saved-date">${d}. ${MONTHS[m - 1]} ${y}</span>
+        ${modeBadge}
         ${badgeHtml}
         <span class="saved-meta">${rrHtml}${pnlHtml}</span>
       </div>
     `;
-    card.onclick = () => openModal(key, date);
+    card.onclick = () => {
+      // switch to correct mode before opening
+      if (entryMode !== currentMode) switchMode(entryMode).then(() => openModal(key, date));
+      else openModal(key, date);
+    };
     container.appendChild(card);
   });
 }

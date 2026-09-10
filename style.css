@@ -592,6 +592,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 .mode-btn{padding:4px 10px;border-radius:4px;border:none;background:transparent;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s;white-space:nowrap;}
 .mode-btn:hover{color:var(--text)}
 .mode-btn.active{background:var(--bg);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.1);}
+.mode-btn#mode-funded.active{color:#3b82f6;}
+.saved-mode-badge{font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;text-transform:uppercase;letter-spacing:.06em;}
+.saved-mode-badge.demo{background:rgba(100,116,139,.15);color:var(--muted2);}
+.saved-mode-badge.funded{background:rgba(59,130,246,.15);color:#3b82f6;}
 
 /* ── Topbar tabs ── */
 .topbar-tabs{display:flex;gap:3px;margin-left:18px}
