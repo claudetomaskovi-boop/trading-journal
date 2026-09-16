@@ -1944,7 +1944,8 @@ function renderData() {
       const outcome = trade.result; // win/loss/be
 
       const card = document.createElement('div');
-      card.className = 'data-card';
+      const outcomeClass = outcome === 'win' ? 'data-card-win' : outcome === 'loss' ? 'data-card-loss' : 'data-card-be';
+      card.className = `data-card ${outcomeClass}`;
 
       // header
       const tradeLabel = dd.tradeList.filter(t => t.result).length > 1
@@ -1984,7 +1985,6 @@ function renderData() {
           <span class="data-trade-lbl">${tradeLabel}</span>
           <span class="cell-badge ${outcome}" style="margin:0 8px 0 auto;flex-shrink:0">${outcome === 'be' ? 'BE' : outcome.toUpperCase()}</span>
           <div class="data-fields">
-            ${mkDropdown('bias', true, ['bullish','bearish'], checks.bias)}
             ${mkDropdown('dol', true, DATA_DOL, checks.dol)}
             ${mkDropdown('condition', false, DATA_CONDITION, checks.condition)}
             ${mkDropdown('news', true, ['No News','Pre News'], checks.news)}
