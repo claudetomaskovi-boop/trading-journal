@@ -1949,58 +1949,88 @@ function renderData() {
       // header
       const tradeLabel = dd.tradeList.filter(t => t.result).length > 1
         ? `Trade ${idx + 1}` : 'Trade';
+      const biasVal = checks.bias ? (checks.bias === 'bullish' ? '▲ Bullish' : '▼ Bearish') : '—';
+      const dolVal  = checks.dol || '—';
+      const condVal = (checks.condition || []).length ? checks.condition.join(', ') : '—';
+      const newsVal = checks.news || '—';
+
+      const mkDropdown = (field, single, options, currentVal) => {
+        const label = { bias:'Bias', dol:'DOL', condition:'Condition', news:'News' }[field];
+        const display = field === 'condition'
+          ? ((currentVal || []).length ? currentVal.join(', ') : '—')
+          : (currentVal || '—');
+        return `
+          <div class="data-field" data-field="${field}">
+            <div class="data-field-head">
+              <span class="data-field-lbl">${label}</span>
+              <span class="data-field-val">${display}</span>
+              <span class="data-field-arrow">▾</span>
+            </div>
+            <div class="data-dropdown" style="display:none">
+              <div class="data-pills" data-field="${field}" data-single="${single ? 1 : 0}">
+                ${options.map(v => {
+                  const active = single ? currentVal === v : (currentVal||[]).includes(v);
+                  const label = v === 'bullish' ? '▲ Bullish' : v === 'bearish' ? '▼ Bearish' : v;
+                  return `<button class="data-pill${active ? ' active' : ''}" data-val="${v}">${label}</button>`;
+                }).join('')}
+              </div>
+            </div>
+          </div>`;
+      };
+
       card.innerHTML = `
-        <div class="data-card-head">
+        <div class="data-card-row">
           <span class="data-date">${d}. ${MONTHS[m-1]} ${y}</span>
           <span class="data-trade-lbl">${tradeLabel}</span>
-          <span class="cell-badge ${outcome}" style="margin-left:auto">${outcome === 'be' ? 'BE' : outcome.toUpperCase()}</span>
-        </div>
-        <div class="data-sections">
-          <div class="data-section">
-            <div class="data-section-title">Bias</div>
-            <div class="data-pills" data-field="bias" data-single="1">
-              ${['bullish','bearish'].map(v => `<button class="data-pill${checks.bias === v ? ' active' : ''}" data-val="${v}">${v === 'bullish' ? '▲ Bullish' : '▼ Bearish'}</button>`).join('')}
-            </div>
-          </div>
-          <div class="data-section">
-            <div class="data-section-title">DOL</div>
-            <div class="data-pills" data-field="dol" data-single="1">
-              ${DATA_DOL.map(v => `<button class="data-pill${checks.dol === v ? ' active' : ''}" data-val="${v}">${v}</button>`).join('')}
-            </div>
-          </div>
-          <div class="data-section">
-            <div class="data-section-title">Condition</div>
-            <div class="data-pills" data-field="condition" data-single="0">
-              ${DATA_CONDITION.map(v => `<button class="data-pill${(checks.condition || []).includes(v) ? ' active' : ''}" data-val="${v}">${v}</button>`).join('')}
-            </div>
-          </div>
-          <div class="data-section">
-            <div class="data-section-title">News</div>
-            <div class="data-pills" data-field="news" data-single="1">
-              ${['No News','Pre News'].map(v => `<button class="data-pill${checks.news === v ? ' active' : ''}" data-val="${v}">${v}</button>`).join('')}
-            </div>
+          <span class="cell-badge ${outcome}" style="margin:0 8px 0 auto;flex-shrink:0">${outcome === 'be' ? 'BE' : outcome.toUpperCase()}</span>
+          <div class="data-fields">
+            ${mkDropdown('bias', true, ['bullish','bearish'], checks.bias)}
+            ${mkDropdown('dol', true, DATA_DOL, checks.dol)}
+            ${mkDropdown('condition', false, DATA_CONDITION, checks.condition)}
+            ${mkDropdown('news', true, ['No News','Pre News'], checks.news)}
           </div>
         </div>
       `;
 
+      // toggle dropdown on head click
+      card.querySelectorAll('.data-field').forEach(field => {
+        field.querySelector('.data-field-head').onclick = (e) => {
+          e.stopPropagation();
+          const drop = field.querySelector('.data-dropdown');
+          const isOpen = drop.style.display !== 'none';
+          // close all others in this card
+          card.querySelectorAll('.data-dropdown').forEach(d => d.style.display = 'none');
+          card.querySelectorAll('.data-field-arrow').forEach(a => a.textContent = '▾');
+          if (!isOpen) {
+            drop.style.display = 'block';
+            field.querySelector('.data-field-arrow').textContent = '▴';
+          }
+        };
+      });
+
       // pill click handler
       card.querySelectorAll('.data-pills').forEach(group => {
-        const field = group.dataset.field;
+        const fieldName = group.dataset.field;
         const single = group.dataset.single === '1';
+        const fieldEl = group.closest('.data-field');
+        const valEl = fieldEl.querySelector('.data-field-val');
         group.querySelectorAll('.data-pill').forEach(pill => {
-          pill.onclick = async () => {
+          pill.onclick = async (e) => {
+            e.stopPropagation();
             const val = pill.dataset.val;
             const dd2 = normalizeDayData(key);
             const t2 = dd2.tradeList[idx];
             if (!t2.checks) t2.checks = {};
             if (single) {
-              t2.checks[field] = t2.checks[field] === val ? null : val;
-              group.querySelectorAll('.data-pill').forEach(p => p.classList.toggle('active', p.dataset.val === t2.checks[field]));
+              t2.checks[fieldName] = t2.checks[fieldName] === val ? null : val;
+              group.querySelectorAll('.data-pill').forEach(p => p.classList.toggle('active', p.dataset.val === t2.checks[fieldName]));
+              valEl.textContent = t2.checks[fieldName] || '—';
             } else {
-              const arr = t2.checks[field] = t2.checks[field] || [];
+              const arr = t2.checks[fieldName] = t2.checks[fieldName] || [];
               const i = arr.indexOf(val);
               if (i === -1) arr.push(val); else arr.splice(i, 1);
               pill.classList.toggle('active', arr.includes(val));
+              valEl.textContent = arr.length ? arr.join(', ') : '—';
             }
             await saveDayData(key, dd2);
           };
@@ -2014,4 +2044,13 @@ function renderData() {
   if (container.children.length === 0) {
     container.innerHTML = '<div class="data-empty">Žádné záznamy.</div>';
   }
+
 }
+
+// close data dropdowns on outside click (registered once)
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.data-field')) {
+    document.querySelectorAll('.data-dropdown').forEach(d => d.style.display = 'none');
+    document.querySelectorAll('.data-field-arrow').forEach(a => a.textContent = '▾');
+  }
+});
