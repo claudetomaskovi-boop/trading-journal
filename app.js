@@ -163,6 +163,7 @@ async function switchMode(mode) {
   render();
   if (activeView === 'stats') renderStats();
   if (activeView === 'saved') renderSaved();
+  if (activeView === 'data') renderData();
   body.style.opacity = '1';
   setTimeout(() => { body.style.transition = ''; }, 200);
 }
@@ -1202,19 +1203,22 @@ let chartInstances = {};
 document.getElementById('tab-calendar').onclick = () => switchView('calendar');
 document.getElementById('tab-stats').onclick    = () => switchView('stats');
 document.getElementById('tab-saved').onclick    = () => switchView('saved');
+document.getElementById('tab-data').onclick     = () => switchView('data');
 
 function switchView(view) {
   if (view === activeView) return;
-  const views = { calendar: 'view-calendar', stats: 'view-stats', saved: 'view-saved' };
+  const views = { calendar: 'view-calendar', stats: 'view-stats', saved: 'view-saved', data: 'view-data' };
   const outEl = document.getElementById(views[activeView]);
   const inEl  = document.getElementById(views[view]);
   activeView = view;
   document.getElementById('tab-calendar').classList.toggle('active', view === 'calendar');
   document.getElementById('tab-stats').classList.toggle('active', view === 'stats');
   document.getElementById('tab-saved').classList.toggle('active', view === 'saved');
-  document.getElementById('sidebar').style.display = view === 'saved' ? 'none' : '';
+  document.getElementById('tab-data').classList.toggle('active', view === 'data');
+  document.getElementById('sidebar').style.display = (view === 'saved' || view === 'data') ? 'none' : '';
   if (view === 'stats') renderStats();
   if (view === 'saved') renderSaved();
+  if (view === 'data') renderData();
   if (outEl) { outEl.style.opacity = '0'; setTimeout(() => { outEl.style.display = 'none'; }, 200); }
   inEl.style.opacity = '0';
   inEl.style.display = '';
@@ -1897,4 +1901,117 @@ async function renderSaved() {
     };
     container.appendChild(card);
   });
+}
+
+// ── Data tab ──────────────────────────────────────────────────
+const DATA_DOL = [
+  'Daily Gap','4H Gap','1H Gap','30M Gap','15M Gap','5M Gap',
+  'Major Liquidity','Daily ITL','4H ITL','1H UTL','30M UTL','15M ITL','5M ITL'
+];
+const DATA_CONDITION = [
+  'Daily Gap','4H Gap','1H Gap','30M Gap','15M Gap',
+  '5M Sponsored Gap','5M Unsponsored Gap','Major Liquidity','Equal Highs',
+  'Daily ITL','4H ITL','1H UTL','30M UTL','15M ITL','5M ITL','Equilibrium'
+];
+
+function renderData() {
+  const container = document.getElementById('data-inner');
+  container.innerHTML = '';
+
+  // Collect all trades from current mode sorted by date desc
+  const entries = Object.entries(trades)
+    .filter(([k]) => {
+      const pfx = currentUser + '_' + currentMode + '_';
+      const dateRe = /^\d{4}-\d{2}-\d{2}$/;
+      return k.startsWith(pfx) && dateRe.test(k.slice(pfx.length));
+    })
+    .sort(([a], [b]) => b.localeCompare(a));
+
+  if (entries.length === 0) {
+    container.innerHTML = '<div class="data-empty">Žádné záznamy.</div>';
+    return;
+  }
+
+  entries.forEach(([key, rawDay]) => {
+    const dd = normalizeDayData(key);
+    if (!dd.tradeList || dd.tradeList.length === 0) return;
+    const rawDate = dkRaw(key);
+    const [y, m, d] = rawDate.split('-').map(Number);
+
+    dd.tradeList.forEach((trade, idx) => {
+      if (!trade.result) return;
+      const checks = trade.checks || {};
+      const outcome = trade.result; // win/loss/be
+
+      const card = document.createElement('div');
+      card.className = 'data-card';
+
+      // header
+      const tradeLabel = dd.tradeList.filter(t => t.result).length > 1
+        ? `Trade ${idx + 1}` : 'Trade';
+      card.innerHTML = `
+        <div class="data-card-head">
+          <span class="data-date">${d}. ${MONTHS[m-1]} ${y}</span>
+          <span class="data-trade-lbl">${tradeLabel}</span>
+          <span class="cell-badge ${outcome}" style="margin-left:auto">${outcome === 'be' ? 'BE' : outcome.toUpperCase()}</span>
+        </div>
+        <div class="data-sections">
+          <div class="data-section">
+            <div class="data-section-title">Bias</div>
+            <div class="data-pills" data-field="bias" data-single="1">
+              ${['bullish','bearish'].map(v => `<button class="data-pill${checks.bias === v ? ' active' : ''}" data-val="${v}">${v === 'bullish' ? '▲ Bullish' : '▼ Bearish'}</button>`).join('')}
+            </div>
+          </div>
+          <div class="data-section">
+            <div class="data-section-title">DOL</div>
+            <div class="data-pills" data-field="dol" data-single="1">
+              ${DATA_DOL.map(v => `<button class="data-pill${checks.dol === v ? ' active' : ''}" data-val="${v}">${v}</button>`).join('')}
+            </div>
+          </div>
+          <div class="data-section">
+            <div class="data-section-title">Condition</div>
+            <div class="data-pills" data-field="condition" data-single="0">
+              ${DATA_CONDITION.map(v => `<button class="data-pill${(checks.condition || []).includes(v) ? ' active' : ''}" data-val="${v}">${v}</button>`).join('')}
+            </div>
+          </div>
+          <div class="data-section">
+            <div class="data-section-title">News</div>
+            <div class="data-pills" data-field="news" data-single="1">
+              ${['No News','Pre News'].map(v => `<button class="data-pill${checks.news === v ? ' active' : ''}" data-val="${v}">${v}</button>`).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+
+      // pill click handler
+      card.querySelectorAll('.data-pills').forEach(group => {
+        const field = group.dataset.field;
+        const single = group.dataset.single === '1';
+        group.querySelectorAll('.data-pill').forEach(pill => {
+          pill.onclick = async () => {
+            const val = pill.dataset.val;
+            const dd2 = normalizeDayData(key);
+            const t2 = dd2.tradeList[idx];
+            if (!t2.checks) t2.checks = {};
+            if (single) {
+              t2.checks[field] = t2.checks[field] === val ? null : val;
+              group.querySelectorAll('.data-pill').forEach(p => p.classList.toggle('active', p.dataset.val === t2.checks[field]));
+            } else {
+              const arr = t2.checks[field] = t2.checks[field] || [];
+              const i = arr.indexOf(val);
+              if (i === -1) arr.push(val); else arr.splice(i, 1);
+              pill.classList.toggle('active', arr.includes(val));
+            }
+            await saveDayData(key, dd2);
+          };
+        });
+      });
+
+      container.appendChild(card);
+    });
+  });
+
+  if (container.children.length === 0) {
+    container.innerHTML = '<div class="data-empty">Žádné záznamy.</div>';
+  }
 }
