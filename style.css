@@ -754,3 +754,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 }
 .data-pill:hover{border-color:var(--accent);color:var(--accent);}
 .data-pill.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.data-field-head-time{cursor:default;gap:6px;}
+.data-time-input{
+  border:none;background:transparent;outline:none;font-size:11px;font-weight:500;
+  color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;width:72px;cursor:pointer;
+  padding:0;
+}

@@ -1955,7 +1955,7 @@ function renderData() {
       const newsVal = checks.news || '—';
 
       const mkDropdown = (field, single, options, currentVal) => {
-        const label = { bias:'Bias', dol:'DOL', condition:'Condition', news:'News' }[field];
+        const label = { bias:'Bias', dol:'DOL', condition:'Condition', news:'News', es:'ES', stophunt:'Stop Hunt', lrl:'LRL→Target' }[field];
         const display = field === 'condition'
           ? ((currentVal || []).length ? currentVal.join(', ') : '—')
           : (currentVal || '—');
@@ -1988,6 +1988,15 @@ function renderData() {
             ${mkDropdown('dol', true, DATA_DOL, checks.dol)}
             ${mkDropdown('condition', false, DATA_CONDITION, checks.condition)}
             ${mkDropdown('news', true, ['No News','Pre News'], checks.news)}
+            ${mkDropdown('es', true, ['ES Correlation','No ES Correlation'], checks.es)}
+            ${mkDropdown('stophunt', true, ['Stop Hunt','No Stop Hunt'], checks.stophunt)}
+            ${mkDropdown('lrl', true, ['Yes','No'], checks.lrl)}
+            <div class="data-field data-field-time">
+              <div class="data-field-head data-field-head-time">
+                <span class="data-field-lbl">Čas</span>
+                <input class="data-time-input" type="time" value="${checks.time || ''}" />
+              </div>
+            </div>
           </div>
         </div>
       `;
@@ -2036,6 +2045,19 @@ function renderData() {
           };
         });
       });
+
+      // time input handler
+      const timeInput = card.querySelector('.data-time-input');
+      if (timeInput) {
+        timeInput.onchange = async () => {
+          const dd2 = normalizeDayData(key);
+          const t2 = dd2.tradeList[idx];
+          if (!t2.checks) t2.checks = {};
+          t2.checks.time = timeInput.value || null;
+          await saveDayData(key, dd2);
+        };
+        timeInput.onclick = e => e.stopPropagation();
+      }
 
       container.appendChild(card);
     });
