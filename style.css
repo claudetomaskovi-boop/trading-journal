@@ -297,7 +297,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 .tf-note-block{flex:1;display:flex;flex-direction:column;}
 .tf-note-block+.tf-note-block{border-left:1px solid var(--border);}
 .tf-note-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted2);padding:4px 9px 0;}
-.tf-note{border:none;background:transparent;color:var(--text);font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;padding:4px 9px 7px;resize:none;min-height:38px;outline:none;width:100%;}
+.tf-note{border:none;background:transparent;color:var(--text);font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;padding:4px 9px 7px;resize:none;min-height:38px;outline:none;width:100%;overflow:hidden;}
 .tf-note::placeholder{color:var(--muted2)}
 .tf-note:focus{background:var(--bg3)}
 /* Instrument selector */
