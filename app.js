@@ -681,10 +681,8 @@ function openModal(key, date, opts = {}) {
                 <div class="tf-note-lbl">Já</div>
                 <textarea class="tf-note" id="note-${noteKey}" placeholder="Moje poznámky...">${cardNote}</textarea>
               </div>
-              <div class="tf-note-block">
-                <div class="tf-note-lbl">Mentor</div>
-                <textarea class="tf-note" id="note-${mentorKey}" placeholder="Poznámky mentora...">${mentorNote}</textarea>
-              </div>
+              ${mentorNote ? `<div class="tf-note-block"><div class="tf-note-lbl">Mentor</div><div class="tf-note-txt" style="font-size:12px;color:var(--muted2);white-space:pre-wrap">${mentorNote}</div></div>` : ''}
+              <textarea class="tf-note" id="note-${mentorKey}" style="display:none">${mentorNote}</textarea>
             </div>
           `;
           area.appendChild(card);
