@@ -142,7 +142,7 @@ async function loadData() {
     if (Array.isArray(raw)) {
       trades[row.key] = { tradeList: raw };
     } else if (raw && typeof raw === 'object') {
-      trades[row.key] = { tradeList: raw.tradeList || [], starred: raw.starred || false };
+      trades[row.key] = { tradeList: raw.tradeList || [], starred: raw.starred || false, dayNote: raw.dayNote || '' };
     }
   });
 }
@@ -172,6 +172,7 @@ async function saveDayData(key, dayData) {
   trades[key] = dayData;
   const payload = { tradeList: dayData.tradeList };
   if (dayData.starred) payload.starred = true;
+  if (dayData.dayNote) payload.dayNote = dayData.dayNote;
   const { error } = await sb.from('trades').upsert({ key, trade_list: payload }, { onConflict: 'key' });
   if (error) console.error('Save error:', error);
 }
@@ -445,8 +446,37 @@ function renderGrid(dir) {
     cell.className = cls;
     cell.innerHTML = `<div class="cell-num">${d}</div>${starMark}${badge}${rrTxt}${pnlTxt}${countBadge}<div class="tf-dots">${dots}</div>`;
     if (!isFuture) cell.onclick = () => openModal(key, date);
+    if (dayData.dayNote) {
+      cell.dataset.dayNote = dayData.dayNote;
+      cell.addEventListener('mouseenter', showDayNoteTooltip);
+      cell.addEventListener('mouseleave', hideDayNoteTooltip);
+    }
     grid.appendChild(cell);
   });
+}
+
+// ── Day-note tooltip ──────────────────────────────────────────
+const _dayTip = document.createElement('div');
+_dayTip.className = 'day-note-tip';
+document.body.appendChild(_dayTip);
+
+function showDayNoteTooltip(e) {
+  const cell = e.currentTarget;
+  _dayTip.textContent = cell.dataset.dayNote;
+  _dayTip.style.display = 'block';
+  positionDayTip(cell);
+}
+function hideDayNoteTooltip() { _dayTip.style.display = 'none'; }
+function positionDayTip(cell) {
+  const r = cell.getBoundingClientRect();
+  const tw = 220;
+  let left = r.left + r.width / 2 - tw / 2;
+  if (left + tw > window.innerWidth - 8) left = window.innerWidth - tw - 8;
+  if (left < 8) left = 8;
+  const top = r.bottom + 6 + window.scrollY;
+  _dayTip.style.left = left + 'px';
+  _dayTip.style.top = top + 'px';
+  _dayTip.style.width = tw + 'px';
 }
 
 // ── Data helpers ──────────────────────────────────────────────
@@ -848,6 +878,14 @@ function openModal(key, date, opts = {}) {
     `;
     body.appendChild(finalNotesWrap);
 
+    const dayNoteWrap = document.createElement('div');
+    dayNoteWrap.className = 'final-notes-wrap';
+    dayNoteWrap.innerHTML = `
+      <div class="final-notes-label">Shrnutí dne <span style="font-size:9px;font-weight:400;color:var(--muted2);text-transform:none;letter-spacing:0">(zobrazí se při hoveru v kalendáři)</span></div>
+      <textarea class="final-notes-inp" id="day-note" placeholder="Krátké shrnutí dne...">${dayData.dayNote || ''}</textarea>
+    `;
+    body.appendChild(dayNoteWrap);
+
 
     const addBtn = document.createElement('button');
     addBtn.className = 'add-trade-btn';
@@ -887,6 +925,7 @@ function openModal(key, date, opts = {}) {
       tr.pnl = rawPnl != null ? (selResult === 'loss' ? -Math.abs(rawPnl) : Math.abs(rawPnl)) : null;
       tr.notes = notes;
       tr.finalNotes = document.getElementById('final-notes')?.value || '';
+      dayData.dayNote = document.getElementById('day-note')?.value || '';
       console.log('[collectAndSave] saving tradeList:', JSON.stringify(dayData.tradeList.map(t => ({result:t.result, rr:t.rr}))));
       return saveFunc ? saveFunc(dayData) : saveDayData(key, dayData);
     }

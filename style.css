@@ -757,6 +757,15 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 }
 .data-pill:hover{border-color:var(--accent);color:var(--accent);}
 .data-pill.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+/* ── Day-note tooltip ── */
+.day-note-tip{
+  display:none;position:absolute;z-index:600;
+  background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);
+  padding:8px 11px;font-size:12px;line-height:1.55;color:var(--text);
+  box-shadow:0 6px 18px rgba(0,0,0,.14);pointer-events:none;white-space:pre-wrap;
+  max-height:160px;overflow:hidden;
+}
 .data-field-head-time{cursor:default;gap:6px;}
 .data-time-input{
   border:none;background:transparent;outline:none;font-size:11px;font-weight:500;
