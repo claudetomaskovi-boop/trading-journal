@@ -760,12 +760,14 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Plus J
 
 /* ── Day-note tooltip ── */
 .day-note-tip{
-  display:none;position:absolute;z-index:600;
+  position:absolute;z-index:600;
   background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);
-  padding:8px 11px;font-size:12px;line-height:1.55;color:var(--text);
+  padding:11px 14px;font-size:15px;line-height:1.55;color:var(--text);
   box-shadow:0 6px 18px rgba(0,0,0,.14);pointer-events:none;white-space:pre-wrap;
-  max-height:160px;overflow:hidden;
+  max-height:200px;overflow:hidden;
+  opacity:0;display:block;transition:opacity .2s ease;
 }
+.day-note-tip.visible{opacity:1;}
 .data-field-head-time{cursor:default;gap:6px;}
 .data-time-input{
   border:none;background:transparent;outline:none;font-size:11px;font-weight:500;

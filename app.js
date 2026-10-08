@@ -463,10 +463,10 @@ document.body.appendChild(_dayTip);
 function showDayNoteTooltip(e) {
   const cell = e.currentTarget;
   _dayTip.textContent = cell.dataset.dayNote;
-  _dayTip.style.display = 'block';
   positionDayTip(cell);
+  requestAnimationFrame(() => _dayTip.classList.add('visible'));
 }
-function hideDayNoteTooltip() { _dayTip.style.display = 'none'; }
+function hideDayNoteTooltip() { _dayTip.classList.remove('visible'); }
 function positionDayTip(cell) {
   const r = cell.getBoundingClientRect();
   const tw = 220;
