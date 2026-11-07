@@ -159,6 +159,7 @@ async function switchMode(mode) {
   if (mode === 'funded') { displayMode = 'rr'; }
   else { displayMode = localStorage.getItem('tj_display') || 'both'; }
   if (mode === 'backtest') { viewYear = 2025; viewMonth = 0; }
+  else { viewYear = now.getFullYear(); viewMonth = now.getMonth(); }
   document.getElementById('mode-demo').classList.toggle('active', mode === 'demo');
   document.getElementById('mode-funded').classList.toggle('active', mode === 'funded');
   document.getElementById('mode-backtest').classList.toggle('active', mode === 'backtest');
