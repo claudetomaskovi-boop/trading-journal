@@ -85,8 +85,8 @@ function themeColors() { return { donut: DONUT_COLORS, barPos: BAR_POS, barNeg: 
 // ── State ─────────────────────────────────────────────────────
 let trades = {};
 const now = new Date();
-let viewYear = now.getFullYear();
-let viewMonth = now.getMonth();
+let viewYear = (sessionStorage.getItem('tj_mode') === 'backtest') ? 2025 : now.getFullYear();
+let viewMonth = (sessionStorage.getItem('tj_mode') === 'backtest') ? 0 : now.getMonth();
 let openKey = null;
 let _globalAutoSaveTimer = null;
 let _globalCollectAndSave = null;
@@ -158,6 +158,7 @@ async function switchMode(mode) {
   sessionStorage.setItem('tj_mode', mode);
   if (mode === 'funded') { displayMode = 'rr'; }
   else { displayMode = localStorage.getItem('tj_display') || 'both'; }
+  if (mode === 'backtest') { viewYear = 2025; viewMonth = 0; }
   document.getElementById('mode-demo').classList.toggle('active', mode === 'demo');
   document.getElementById('mode-funded').classList.toggle('active', mode === 'funded');
   document.getElementById('mode-backtest').classList.toggle('active', mode === 'backtest');
