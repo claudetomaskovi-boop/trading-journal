@@ -5,7 +5,7 @@ const USERS = [
 ];
 
 let currentUser = sessionStorage.getItem('tj_user') || '';
-let currentMode = sessionStorage.getItem('tj_mode') || 'funded'; // 'demo' | 'funded'
+let currentMode = sessionStorage.getItem('tj_mode') || 'funded'; // 'demo' | 'funded' | 'backtest'
 
 function checkLogin() {
   return sessionStorage.getItem('tj_auth') === '1' && !!currentUser;
@@ -96,6 +96,7 @@ let sidebarTab = 'month';
 let customRangeFrom = null;
 let customRangeTo   = null;
 let displayMode = (sessionStorage.getItem('tj_mode') || 'funded') === 'funded' ? 'rr' : (localStorage.getItem('tj_display') || 'both');
+// backtest & demo use user's saved display preference; funded is locked to rr
 
 // ── Supabase data layer ───────────────────────────────────────
 async function loadData() {
@@ -159,6 +160,7 @@ async function switchMode(mode) {
   else { displayMode = localStorage.getItem('tj_display') || 'both'; }
   document.getElementById('mode-demo').classList.toggle('active', mode === 'demo');
   document.getElementById('mode-funded').classList.toggle('active', mode === 'funded');
+  document.getElementById('mode-backtest').classList.toggle('active', mode === 'backtest');
   await loadData();
   render();
   if (activeView === 'stats') renderStats();
@@ -276,8 +278,10 @@ async function initApp() {
   // Mode toggle buttons
   document.getElementById('mode-demo').classList.toggle('active', currentMode === 'demo');
   document.getElementById('mode-funded').classList.toggle('active', currentMode === 'funded');
+  document.getElementById('mode-backtest').classList.toggle('active', currentMode === 'backtest');
   document.getElementById('mode-demo').onclick = () => switchMode('demo');
   document.getElementById('mode-funded').onclick = () => switchMode('funded');
+  document.getElementById('mode-backtest').onclick = () => switchMode('backtest');
 
   document.getElementById('cal-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);font-size:13px">Načítám…</div>';
   await loadData();
@@ -1884,7 +1888,7 @@ async function renderSaved() {
   if (error) { container.innerHTML = '<div class="saved-empty">Chyba načítání.</div>'; return; }
 
   const dateRe = /^\d{4}-\d{2}-\d{2}$/;
-  const modePrefix = { demo: currentUser + '_demo_', funded: currentUser + '_funded_' };
+  const modePrefix = { demo: currentUser + '_demo_', funded: currentUser + '_funded_', backtest: currentUser + '_backtest_' };
 
   const starredEntries = (data || [])
     .filter(row => {
@@ -1915,8 +1919,9 @@ async function renderSaved() {
     const date = new Date(y, m - 1, d);
     const summary = computeDaySummary(dayData);
     const totalPnl = (dayData.tradeList || []).reduce((s, t) => s + (t.pnl ?? 0), 0);
-    const entryMode = key.includes('_funded_') ? 'funded' : 'demo';
-    const modeBadge = `<span class="saved-mode-badge ${entryMode}">${entryMode === 'funded' ? 'FUNDED' : 'DEMO'}</span>`;
+    const entryMode = key.includes('_funded_') ? 'funded' : key.includes('_backtest_') ? 'backtest' : 'demo';
+    const modeLabel = entryMode === 'funded' ? 'FUNDED' : entryMode === 'backtest' ? 'BACKTEST' : 'DEMO';
+    const modeBadge = `<span class="saved-mode-badge ${entryMode}">${modeLabel}</span>`;
 
     const card = document.createElement('div');
     card.className = 'saved-card';
