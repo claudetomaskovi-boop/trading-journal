@@ -5,7 +5,7 @@ const USERS = [
 ];
 
 let currentUser = sessionStorage.getItem('tj_user') || '';
-let currentMode = sessionStorage.getItem('tj_mode') || 'funded'; // 'demo' | 'funded' | 'backtest'
+let currentMode = (['funded','backtest'].includes(sessionStorage.getItem('tj_mode'))) ? sessionStorage.getItem('tj_mode') : 'funded'; // 'funded' | 'backtest'
 
 function checkLogin() {
   return sessionStorage.getItem('tj_auth') === '1' && !!currentUser;
@@ -85,8 +85,8 @@ function themeColors() { return { donut: DONUT_COLORS, barPos: BAR_POS, barNeg: 
 // ── State ─────────────────────────────────────────────────────
 let trades = {};
 const now = new Date();
-let viewYear = (sessionStorage.getItem('tj_mode') === 'backtest') ? 2025 : now.getFullYear();
-let viewMonth = (sessionStorage.getItem('tj_mode') === 'backtest') ? 0 : now.getMonth();
+let viewYear = (['backtest'].includes(sessionStorage.getItem('tj_mode'))) ? 2025 : now.getFullYear();
+let viewMonth = (['backtest'].includes(sessionStorage.getItem('tj_mode'))) ? 0 : now.getMonth();
 let openKey = null;
 let _globalAutoSaveTimer = null;
 let _globalCollectAndSave = null;
@@ -160,7 +160,6 @@ async function switchMode(mode) {
   else { displayMode = localStorage.getItem('tj_display') || 'both'; }
   if (mode === 'backtest') { viewYear = 2025; viewMonth = 0; }
   else { viewYear = now.getFullYear(); viewMonth = now.getMonth(); }
-  document.getElementById('mode-demo').classList.toggle('active', mode === 'demo');
   document.getElementById('mode-funded').classList.toggle('active', mode === 'funded');
   document.getElementById('mode-backtest').classList.toggle('active', mode === 'backtest');
   await loadData();
@@ -278,10 +277,8 @@ window.addEventListener('resize', () => requestAnimationFrame(setSquareCells));
 
 async function initApp() {
   // Mode toggle buttons
-  document.getElementById('mode-demo').classList.toggle('active', currentMode === 'demo');
   document.getElementById('mode-funded').classList.toggle('active', currentMode === 'funded');
   document.getElementById('mode-backtest').classList.toggle('active', currentMode === 'backtest');
-  document.getElementById('mode-demo').onclick = () => switchMode('demo');
   document.getElementById('mode-funded').onclick = () => switchMode('funded');
   document.getElementById('mode-backtest').onclick = () => switchMode('backtest');
 
@@ -1602,7 +1599,7 @@ document.getElementById('settings-overlay').onclick = e => {
 document.querySelectorAll('#mode-opts .settings-opt').forEach(b => {
   b.onclick = () => {
     displayMode = b.dataset.val;
-    if (currentMode !== 'funded') localStorage.setItem('tj_display', displayMode);
+    if (currentMode === 'backtest') localStorage.setItem('tj_display', displayMode);
     updateSettingsUI();
     applyDisplayMode();
   };
