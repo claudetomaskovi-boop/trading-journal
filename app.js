@@ -951,7 +951,10 @@ function openModal(key, date, opts = {}) {
     body.addEventListener('input', scheduleAutoSave);
 
     // auto-resize all note textareas
-    function autoResizeTA(ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
+    function autoResizeTA(ta) {
+      ta.style.height = '0';
+      ta.style.height = ta.scrollHeight + 'px';
+    }
     body.querySelectorAll('.tf-note').forEach(ta => {
       autoResizeTA(ta);
       ta.addEventListener('input', () => autoResizeTA(ta));
