@@ -322,7 +322,7 @@ function computeStats(filterFn) {
   const total = wins+losses+bes;
   return {
     wins, losses, bes, total,
-    wr:      total>0 ? Math.round((wins+bes)/total*100)+'%' : '—',
+    wr:      (wins+losses)>0 ? Math.round(wins/(wins+losses)*100)+'%' : '—',
     avgRR:   rrN>0   ? (rrSum/rrN).toFixed(2)+'R'     : '—',
     totalRR: rrN>0   ? (rrSum >= 0 ? '+' : '') + Math.round(rrSum*100)/100 + 'R' : '—',
   };
@@ -1309,7 +1309,7 @@ function renderStats() {
   const losses = all.filter(t => t.result === 'loss').length;
   const bes    = all.filter(t => t.result === 'be').length;
   const total  = all.length;
-  const wr     = total > 0 ? Math.round((wins + bes) / total * 100) : 0;
+  const wr     = (wins + losses) > 0 ? Math.round(wins / (wins + losses) * 100) : 0;
 
   let rrSum = 0, rrN = 0;
   all.forEach(t => {
@@ -1644,7 +1644,7 @@ function initUserBtn() {
     const total = all.length;
     const wins  = all.filter(t => t.result === 'win').length;
     const bes   = all.filter(t => t.result === 'be').length;
-    const wr    = total > 0 ? Math.round((wins + bes) / total * 100) + '%' : '—';
+    const wr    = (wins + losses) > 0 ? Math.round(wins / (wins + losses) * 100) + '%' : '—';
     document.getElementById('user-dd-trades').textContent = total || '—';
     document.getElementById('user-dd-wr').textContent = wr;
   }
