@@ -749,7 +749,7 @@ function openModal(key, date, opts = {}) {
     }
 
     let selectedTF = null;
-    let selectedInstrument = null;
+    let selectedInstrument = 'NQ';
 
     async function uploadImageBlob(blob, tf) {
       const file = new File([blob], `paste_${Date.now()}.png`, { type: blob.type || 'image/png' });
@@ -816,7 +816,7 @@ function openModal(key, date, opts = {}) {
         };
         btn.ondblclick = () => {
           if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }
-          if (!selectedInstrument) { showToast('Nejprve vyberte index (NQ / ES)'); return; }
+          if (!selectedInstrument) selectedInstrument = 'NQ';
           selectedTF = tf;
           renderTFButtons();
           const input = document.createElement('input');
@@ -851,7 +851,7 @@ function openModal(key, date, opts = {}) {
         let target = selectedTF;
         if (!target) target = TFS.find(tf => !tfHasAny(tf));
         if (!target) target = selectedTF || TFS[0]; // allow adding more to existing
-        if (!selectedInstrument) { showToast('Nejprve vyberte index (NQ / ES)'); return; }
+        if (!selectedInstrument) selectedInstrument = 'NQ';
         e.preventDefault();
         uploadImageBlob(blob, target);
         return;
