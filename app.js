@@ -42,7 +42,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── Constants ─────────────────────────────────────────────────
-const TFS = ['Daily','4H','1H','30M','15M','5M','3M','1M','30S','15S'];
+const TFS = ['Weekly','Daily','4H','1H','30M','15M','5M','3M','1M','30S','15S'];
 const MONTHS = ['Leden','Únor','Březen','Duben','Květen','Červen','Červenec','Srpen','Září','Říjen','Listopad','Prosinec'];
 const MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -712,7 +712,7 @@ function openModal(key, date, opts = {}) {
             <div class="tf-notes-row">
               <div class="tf-note-block">
                 <div class="tf-note-lbl">Já</div>
-                <textarea class="tf-note" id="note-${noteKey}" placeholder="Moje poznámky...">${cardNote}</textarea>
+                <textarea class="tf-note" id="note-${noteKey}" placeholder="Moje poznámky..." spellcheck="false">${cardNote}</textarea>
               </div>
               ${mentorNote ? `<div class="tf-note-block"><div class="tf-note-lbl">Mentor</div><div class="tf-note-txt" style="font-size:12px;color:var(--muted2);white-space:pre-wrap">${mentorNote}</div></div>` : ''}
               <textarea class="tf-note" id="note-${mentorKey}" style="display:none">${mentorNote}</textarea>
@@ -877,7 +877,7 @@ function openModal(key, date, opts = {}) {
     finalNotesWrap.className = 'final-notes-wrap';
     finalNotesWrap.innerHTML = `
       <div class="final-notes-label">Závěrečné poznámky</div>
-      <textarea class="final-notes-inp" id="final-notes" placeholder="Celkové shrnutí obchodu, chyby, poučení...">${tr.finalNotes || ''}</textarea>
+      <textarea class="final-notes-inp" id="final-notes" placeholder="Celkové shrnutí obchodu, chyby, poučení..." spellcheck="false">${tr.finalNotes || ''}</textarea>
     `;
     body.appendChild(finalNotesWrap);
 
@@ -885,7 +885,7 @@ function openModal(key, date, opts = {}) {
     dayNoteWrap.className = 'final-notes-wrap';
     dayNoteWrap.innerHTML = `
       <div class="final-notes-label">Shrnutí dne <span style="font-size:9px;font-weight:400;color:var(--muted2);text-transform:none;letter-spacing:0">(zobrazí se při hoveru v kalendáři)</span></div>
-      <textarea class="final-notes-inp" id="day-note" placeholder="Krátké shrnutí dne...">${dayData.dayNote || ''}</textarea>
+      <textarea class="final-notes-inp" id="day-note" placeholder="Krátké shrnutí dne..." spellcheck="false">${dayData.dayNote || ''}</textarea>
     `;
     body.appendChild(dayNoteWrap);
 
