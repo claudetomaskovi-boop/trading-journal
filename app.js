@@ -42,7 +42,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── Constants ─────────────────────────────────────────────────
-const TFS = ['Daily','4H','1H','30M','15M','5M','3M','1M'];
+const TFS = ['Daily','4H','1H','30M','15M','5M','3M','1M','30S','15S'];
 const MONTHS = ['Leden','Únor','Březen','Duben','Květen','Červen','Červenec','Srpen','Září','Říjen','Listopad','Prosinec'];
 const MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
